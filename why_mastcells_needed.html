@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비만세포가 필요한 이유</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+            color: white;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: "🎭";
+            position: absolute;
+            font-size: 8em;
+            opacity: 0.1;
+            top: -20px;
+            right: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        .evolutionary-section {
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .evolutionary-title {
+            font-size: 2.2em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .evolutionary-content {
+            font-size: 1.1em;
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .reasons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 50px 0;
+        }
+
+        .reason-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+
+        .reason-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .reason-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+        }
+
+        .defense-card::before { background: linear-gradient(90deg, #ff6b6b 0%, #ee5a24 100%); }
+        .speed-card::before { background: linear-gradient(90deg, #74b9ff 0%, #0984e3 100%); }
+        .repair-card::before { background: linear-gradient(90deg, #00b894 0%, #00a085 100%); }
+        .regulation-card::before { background: linear-gradient(90deg, #a29bfe 0%, #6c5ce7 100%); }
+        .surveillance-card::before { background: linear-gradient(90deg, #fd79a8 0%, #e84393 100%); }
+        .homeostasis-card::before { background: linear-gradient(90deg, #fdcb6e 0%, #e17055 100%); }
+
+        .reason-icon {
+            font-size: 3em;
+            text-align: center;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .reason-title {
+            font-size: 1.6em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .reason-subtitle {
+            font-size: 1em;
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 25px;
+            font-style: italic;
+        }
+
+        .reason-details {
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+
+        .reason-card.active .reason-details {
+            opacity: 1;
+            max-height: 800px;
+        }
+
+        .reason-card.active {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-title {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .detail-list li {
+            margin: 8px 0;
+            padding: 10px 15px;
+            background: rgba(0,123,255,0.1);
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #2196f3;
+            font-weight: bold;
+            color: #1565c0;
+        }
+
+        .scenario-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px;
+            border-radius: 20px;
+            margin: 40px 0;
+        }
+
+        .scenario-title {
+            text-align: center;
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .scenario-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .scenario-icon {
+            font-size: 2.5em;
+            text-align: center;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .scenario-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .scenario-description {
+            font-size: 0.95em;
+            line-height: 1.5;
+            color: #495057;
+            text-align: center;
+        }
+
+        .without-mastcells {
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+            border: 2px solid #fc8181;
+            padding: 30px;
+            border-radius: 20px;
+            margin: 40px 0;
+        }
+
+        .danger-title {
+            text-align: center;
+            font-size: 2em;
+            color: #c53030;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .consequences-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .consequence-item {
+            background: rgba(255,255,255,0.8);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .consequence-title {
+            font-weight: bold;
+            color: #c53030;
+            margin-bottom: 8px;
+        }
+
+        .consequence-text {
+            font-size: 0.95em;
+            line-height: 1.4;
+            color: #2d3748;
+        }
+
+        .balance-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .balance-title {
+            font-size: 2em;
+            margin-bottom: 25px;
+        }
+
+        .balance-content {
+            font-size: 1.1em;
+            line-height: 1.7;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .balance-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .balance-side {
+            background: rgba(255,255,255,0.15);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .side-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .side-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .side-list li {
+            margin: 10px 0;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            font-size: 0.95em;
+        }
+
+        .conclusion {
+            background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .conclusion-title {
+            font-size: 2.2em;
+            margin-bottom: 25px;
+        }
+
+        .conclusion-text {
+            font-size: 1.2em;
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            .reasons-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .balance-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤔 비만세포가 필요한 이유</h1>
+            <p>진화가 우리에게 준 특별한 선물, 비만세포의 존재 이유</p>
+        </div>
+
+        <div class="evolutionary-section">
+            <div class="evolutionary-title">
+                <span>🧬</span>
+                <span>진화적 관점</span>
+                <span>🧬</span>
+            </div>
+            <div class="evolutionary-content">
+                <strong>비만세포는 수억 년간 진화를 통해 살아남은 "필수 생존 도구"입니다.</strong><br><br>
+                만약 비만세포가 불필요했다면 진화 과정에서 사라졌을 것입니다. 하지만 포유류뿐만 아니라 어류, 조류에서도 발견되는 것은 
+                생존에 <strong>절대적으로 필요한 기능</strong>을 수행하기 때문입니다.
+            </div>
+        </div>
+
+        <div class="reasons-grid">
+            <div class="reason-card defense-card">
+                <div class="reason-icon">🛡️</div>
+                <div class="reason-title">1차 방어선</div>
+                <div class="reason-subtitle">First Line Defense</div>
+                <div class="reason-details">
+                    <div class="detail-section">
+                        <div class="detail-title">🚨 즉각적 경보 시스템</div>
+                        <ul class="detail-list">
+                            <li><strong>수초 내 반응</strong>: 다른 면역세포보다 훨씬 빠름</li>
+                            <li><strong>광범위한 감지</strong>: 물리적, 화학적, 생물학적 위협</li>
+                            <li><strong>증폭 효과</strong>: 소량 자극도 강한 반응으로 확대</li>
+                            <li><strong>신호 전달</strong>: 다른 면역세포에 위험 알림</li>
+                        </ul>
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-title">⚔️ 기생충 전문 방어</div>
+                        <ul class="detail-list">
+                            <li><strong>기생충 퇴치</strong>: 벌레, 진드기 등 큰 병원체</li>
+                            <li><strong>독소 중화</strong>: 뱀독, 곤충독 등</li>
+                            <li><strong>알레르기 반응</strong>: 독성 물질 빠른 배출</li>
+                        </ul>
+                    </div>
+                    <div class="highlight-box">
+                        💡 비만세포가 없다면 기생충 감염 시 초기 대응이 불가능해집니다!
+                    </div>
+                </div>
+            </div>
+
+            <div class="reason-card speed-card">
+                <div class="reason-icon">⚡</div>
+                <div class="reason-title">초고속 반응</div>
+                <div class="reason-subtitle">Ultra-Fast Response</div>
+                <div class="reason-details">
+                    <div class="detail-section">
+                        <div class="detail-title">🏃 속도의 필요성</div>
+                        <ul class="detail-list">
+                            <li><strong>독성 물질</strong>: 몇 분이면 치명적일 수 있음</li>
+                            <li><strong>급성 감염</strong>: 빠른 확산 방지</li>
+                            <li><strong>조직 손상</strong>: 즉각적 응급처치</li>
+                            <li><strong>혈관 반응</strong>: 출혈 조절, 투과성 조절</li>
+                        </ul>
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-title">⏰ 시간 격차 해결</div>
+                        <ul class="detail-list">
+                            <li><strong>면역계 공백</strong>: 획득성 면역 활성화 전까지</li>
+                            <li><strong>응급 처치</strong>: T세포, B세포 반응 이전</li>
+                            <li><strong>생존율 향상</strong>: 치명적 시간 단축</li>
+                        </ul>
+                    </div>
+                    <div class="highlight-box">
+                        ⚡ 3초 vs 3일: 비만세포 없이는 위험 상황에서 생존할 수 없습니다!
+                    </div>
+                </div>
+            </div>
+
+            <div class="reason-card repair-card">
+                <div class="reason-icon">🔧</div>
+                <div class="reason-title">상처 치유</div>
+                <div class="reason-subtitle">Wound Healing</div>
+                <div class="reason-details">
+                    <div class="detail-section">
+                        <div class="detail-title">🩹 치유 과정 조율</div>
+                        <ul class="detail-list">
+                            <li><strong>혈관 신생</strong>: 새로운 혈관 형성 촉진</li>
+                            <li><strong>콜라겐 합성</strong>: 상처 부위 강화</li>
+                            <li><strong>섬유아세포 활성화</strong>: 조직 재생</li>
+                            <li><strong>염증 조절</strong>: 적절한 염증 유지</li>
+                        </ul>
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-title">🔄 재건 프로세스</div>
+                        <ul class="detail-list">
+                            <li><strong>응고 촉진</strong>: 출혈 즉시 차단</li>
+                            <li><strong>세포 이주</strong>: 복구 세포 유도</li>
+                            <li><strong>조직 리모델링</strong>: 흉터 최소화</li>
+                        </ul>
+                    </div>
+                    <div class="highlight-box">
+                        🔧 비만세포는 몸의 "응급 의료진"이자 "건설 현장 감독"입니다!
+                    </div>
+                </div>
+            </div>
+
+            <div class="reason-card surveillance-card">
+                <div class="reason-icon">👁️</div>
+                <div class="reason-title">조직 감시</div>
+                <div class="reason-subtitle">Tissue Surveillance</div>
+                <div class="reason-details">
+                    <div class="detail-section">
+                        <div class="detail-title">🕵️ 24시간 감시망</div>
+                        <ul class="detail-list">
+                            <li><strong>전략적 위치</strong>: 피부, 점막, 혈관 주변</li>
+                            <li><strong>조기 발견</strong>: 이상 징후 최초 감지</li>
+                            <li><strong>경계 근무</strong>: 외부-내부 접촉 지점</li>
+                            <li><strong>상시 대기</strong>: 휴지기 없는 감시</li>
+                        </ul>
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-title">📡 정보 수집</div>
+                        <ul class="detail-list">
+                            <li><strong>환경 변화</strong>: 온도, 압력, 화학물질</li>
+                            <li><strong>병원체 침입</strong>: 세균, 바이러스, 독소</li>
+                            <li><strong>조직 손상</strong>: 외상, 염증, 괴사</li>
+                        </ul>
+                    </div>
+                    <div class="highlight-box">
+                        👁️ 비만세포는 몸 전체에 분포한 "조기 경보 레이더망"입니다!
+                    </div>
+                </div>
+            </div>
+
+            <div class="reason-card regulation-card">
+                <div class="reason-icon">⚖️</div>
+                <div class="reason-title">면역 조절</div>
+                <div class="reason-subtitle">Immune Regulation</div>
+                <div class="reason-details">
+                    <div class="detail-section">
+                        <div class="detail-title">🎛️ 면역 반응 조율</div>
+                        <ul class="detail-list">
+                            <li><strong>T세포 분화</strong>: Th1/Th2 균형 조절</li>
+                            <li><strong>사이토카인 방출</strong>: IL-4, IL-5, IL-13</li>
+                            <li><strong>B세포 활성화</strong>: 항체 생산 유도</li>
+                            <li><strong>염증 매개</strong>: 적절한 염증 수준 유지</li>
+                        </ul>
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-title">🔄 항상성 유지</div>
+                        <ul class="detail-list">
+                            <li><strong>과민반응 방지</strong>: 불필요한 염증 억제</li>
+                            <li><strong>관용 유도</strong>: 무해한 물질에 대한 적응</li>
+                            <li><strong>균형 조절</strong>: 면역 과활성 방지</li>
+                        </ul>
+                    </div>
+                    <div class="highlight-box">
+                        ⚖️ 비만세포는 면역시스템의 "지휘자"이자 "균형추"입니다!
+                    </div>
+                </div>
+            </div>
+
+            <div class="reason-card homeostasis-card">
+                <div class="reason-icon">🌊</div>
+                <div class="reason-title">항상성 유지</div>
+                <div class="reason-subtitle">Homeostasis</div>
+                <div class="reason-details">
+                    <div class="detail-section">
+                        <div class="detail-title">🌡️ 생리적 균형</div>
+                        <ul class="detail-list">
+                            <li><strong>혈관 투과성</strong>: 물질 교환 조절</li>
+                            <li><strong>혈류 조절</strong>: 국소 순환 개선</li>
+                            <li><strong>신경 조절</strong>: 통증, 가려움 신호</li>
+                            <li><strong>점액 분비</strong>: 보호막 형성</li>
+                        </ul>
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-title">🔧 미세 조정</div>
+                        <ul class="detail-list">
+                            <li><strong>조직 압력</strong>: 부종 방지</li>
+                            <li><strong>pH 조절</strong>: 산성도 균형</li>
+                            <li><strong>온도 조절</strong>: 국소 열 조절</li>
+                        </ul>
+                    </div>
+                    <div class="highlight-box">
+                        🌊 비만세포는 몸의 "자동 온도조절기"이자 "압력밸브"입니다!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="scenario-section">
+            <div class="scenario-title">🎯 실제 상황에서의 필요성</div>
+            <div class="scenarios-grid">
+                <div class="scenario-card">
+                    <div class="scenario-icon">🐝</div>
+                    <div class="scenario-name">벌에 쏘인 상황</div>
+                    <div class="scenario-description">
+                        비만세포가 즉시 히스타민 분비 → 독소 희석 및 배출 → 생명 보호<br>
+                        <strong>없다면:</strong> 독소 확산으로 위험
+                    </div>
+                </div>
+
+                <div class="scenario-card">
+                    <div class="scenario-icon">🦠</div>
+                    <div class="scenario-name">기생충 감염</div>
+                    <div class="scenario-description">
+                        즉각적인 알레르기 반응 → 기생충 배출 → 장기적 감염 방지<br>
+                        <strong>없다면:</strong> 기생충 정착 및 번식
+                    </div>
+                </div>
+
+                <div class="scenario-card">
+                    <div class="scenario-icon">🔥</div>
+                    <div class="scenario-name">화상 상처</div>
+                    <div class="scenario-description">
+                        즉시 염증 반응 → 혈관 확장 → 치유 세포 유도 → 빠른 복구<br>
+                        <strong>없다면:</strong> 감염 위험, 치유 지연
+                    </div>
+                </div>
+
+                <div class="scenario-card">
+                    <div class="scenario-icon">🧪</div>
+                    <div class="scenario-name">독성 화학물질</div>
+                    <div class="scenario-description">
+                        즉각적 경보 → 혈관 투과성 증가 → 독소 희석 → 빠른 배출<br>
+                        <strong>없다면:</strong> 독소 축적으로 중독
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="without-mastcells">
+            <div class="danger-title">
+                <span>⚠️</span>
+                <span>비만세포가 없다면?</span>
+                <span>⚠️</span>
+            </div>
+            <div class="consequences-grid">
+                <div class="consequence-item">
+                    <div class="consequence-title">🐌 느린 면역 반응</div>
+                    <div class="consequence-text">
+                        T세포, B세포 활성화까지 수일 소요 → 급성 위험 상황에서 생존 불가
+                    </div>
+                </div>
+
+                <div class="consequence-item">
+                    <div class="consequence-title">🦠 기생충 감염 취약</div>
+                    <div class="consequence-text">
+                        벌레, 진드기 등 대형 병원체에 대한 즉각적 대응 불가
+                    </div>
+                </div>
+
+                <div class="consequence-item">
+                    <div class="consequence-title">💀 독성 물질 위험</div>
+                    <div class="consequence-text">
+                        뱀독, 벌독 등에 노출 시 즉각적 해독 및 배출 불가
+                    </div>
+                </div>
+
+                <div class="consequence-item">
+                    <div class="consequence-title">🩹 상처 치유 지연</div>
+                    <div class="consequence-text">
+                        혈관 신생, 조직 재생 신호 부족으로 회복 속도 현저히 저하
+                    </div>
+                </div>
+
+                <div class="consequence-item">
+                    <div class="consequence-title">📡 조기 경보 부재</div>
+                    <div class="consequence-text">
+                        조직 손상이나 감염 초기 단계에서 경고 신호 없음
+                    </div>
+                </div>
+
+                <div class="consequence-item">
+                    <div class="consequence-title">⚖️ 면역 불균형</div>
+                    <div class="consequence-text">
+                        Th1/Th2 균형 조절 실패로 면역 반응 이상
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="balance-section">
+            <div class="balance-title">⚖️ 양날의 검: 이익 vs 위험</div>
+            <div class="balance-content">
+                비만세포는 <strong>"필요악"</strong>이 아닙니다. 생존에 필수적인 기능을 수행하지만, 
+                때로는 과도한 반응으로 문제를 일으킬 수 있는 <strong>"양날의 검"</strong>입니다.
+            </div>
+            <div class="balance-grid">
+                <div class="balance-side">
+                    <div class="side-title">✅ 생존에 필수적 이익</div>
+                    <ul class="side-list">
+                        <li>즉각적 위험 감지 및 대응</li>
+                        <li>기생충 감염 방어</li>
+                        <li>상처 치유 촉진</li>
+                        <li>면역 시스템 조절</li>
+                        <li>조직 항상성 유지</li>
+                        <li>독성 물질 신속 배출</li>
+                    </ul>
+                </div>
+                <div class="balance-side">
+                    <div class="side-title">⚠️ 과반응의 위험</div>
+                    <ul class="side-list">
+                        <li>알레르기 반응 (두드러기, 천식)</li>
+                        <li>아나필락시스 (생명 위험)</li>
+                        <li>만성 염증 질환</li>
+                        <li>아토피 피부염</li>
+                        <li>과도한 혈관 투과성</li>
+                        <li>불필요한 면역 활성화</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="conclusion">
+            <div class="conclusion-title">🎯 결론</div>
+            <div class="conclusion-text">
+                비만세포는 <strong>"생존의 보험"</strong>입니다.<br><br>
+                
+                현대 사회에서는 알레르기나 천식 같은 부작용이 더 두드러져 보이지만, 
+                진화적으로는 <strong>생존율을 극적으로 높인 필수 시스템</strong>입니다.<br><br>
+                
+                독성 곤충, 기생충, 급성 감염이 일상이었던 과거에는 
+                비만세포가 있는 개체와 없는 개체 사이의 <strong>생존율 차이가 극명했을 것</strong>입니다.<br><br>
+                
+                <strong>비만세포 = 몸의 "119 응급실" + "조기 경보 시스템" + "응급 의료진"</strong>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 모든 reason 카드에 클릭 이벤트 추가
+            const reasonCards = document.querySelectorAll('.reason-card');
+            
+            reasonCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // 현재 카드가 활성화되어 있는지 확인
+                    const isActive = this.classList.contains('active');
+                    
+                    // 모든 카드 비활성화
+                    reasonCards.forEach(c => c.classList.remove('active'));
+                    
+                    // 클릭한 카드가 비활성 상태였다면 활성화
+                    if (!isActive) {
+                        this.classList.add('active');
+                    }
+                });
+            });
+
+            // 첫 번째 카드를 자동으로 활성화
+            if (reasonCards.length > 0) {
+                reasonCards[0].classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>
