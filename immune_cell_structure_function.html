@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>면역세포 구조 시각화</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+            color: white;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: "🔬";
+            position: absolute;
+            font-size: 8em;
+            opacity: 0.1;
+            top: -20px;
+            right: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        /* 현미경 뷰 스타일 */
+        .microscope-view {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 40px;
+            border-radius: 20px;
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .microscope-title {
+            color: white;
+            font-size: 2.2em;
+            margin-bottom: 30px;
+        }
+
+        .view-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .magnification-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .magnification-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .magnification-btn.active {
+            background: #e74c3c;
+        }
+
+        /* 면역세포 갤러리 */
+        .cell-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin: 50px 0;
+        }
+
+        .cell-card {
+            background: white;
+            border-radius: 20px;
+            padding: 0;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+
+        .cell-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+        }
+
+        .cell-visual {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cell-svg {
+            max-width: 90%;
+            max-height: 90%;
+            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.1));
+        }
+
+        .cell-info {
+            padding: 25px;
+        }
+
+        .cell-name {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .cell-size {
+            text-align: center;
+            color: #6c757d;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .structure-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .feature-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid;
+        }
+
+        .macrophage-color { border-left-color: #e74c3c; }
+        .neutrophil-color { border-left-color: #3498db; }
+        .dendritic-color { border-left-color: #f39c12; }
+        .tcell-color { border-left-color: #27ae60; }
+        .bcell-color { border-left-color: #9b59b6; }
+        .nkcell-color { border-left-color: #e91e63; }
+        .mastcell-color { border-left-color: #2196f3; }
+        .eosinophil-color { border-left-color: #00bcd4; }
+        .basophil-color { border-left-color: #ff5722; }
+
+        .feature-title {
+            font-weight: bold;
+            font-size: 0.95em;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .feature-desc {
+            font-size: 0.85em;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        /* 상세 구조 설명 */
+        .detailed-structure {
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            margin-top: 20px;
+            border-radius: 15px;
+        }
+
+        .cell-card.expanded .detailed-structure {
+            opacity: 1;
+            max-height: 500px;
+            padding: 25px;
+        }
+
+        .structure-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .structure-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .structure-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .structure-function {
+            font-size: 0.9em;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        /* 비교 뷰어 */
+        .comparison-viewer {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            border-radius: 20px;
+            margin: 50px 0;
+            color: white;
+        }
+
+        .comparison-title {
+            text-align: center;
+            font-size: 2.2em;
+            margin-bottom: 30px;
+        }
+
+        .size-comparison {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .size-item {
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .size-circle {
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            border: 3px solid white;
+        }
+
+        .size-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .size-value {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        /* 애니메이션 */
+        @keyframes cellPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .cell-card:hover .cell-svg {
+            animation: cellPulse 2s infinite;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .cell-gallery {
+                grid-template-columns: 1fr;
+            }
+            
+            .structure-features {
+                grid-template-columns: 1fr;
+            }
+            
+            .size-comparison {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+        }
+
+        /* 레전드 스타일 */
+        .legend {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+
+        .legend-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        .legend-text {
+            font-size: 0.95em;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 면역세포 구조 시각화</h1>
+            <p>현미경으로 보는 면역세포의 실제 형태와 구조적 특징</p>
+        </div>
+
+        <!-- 범례 -->
+        <div class="legend">
+            <div class="legend-title">🎨 구조 요소 색상 가이드</div>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff6b6b;"></div>
+                    <div class="legend-text">핵 (Nucleus)</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4ecdc4;"></div>
+                    <div class="legend-text">세포질 (Cytoplasm)</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #45b7d1;"></div>
+                    <div class="legend-text">과립 (Granules)</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f9ca24;"></div>
+                    <div class="legend-text">리소솜 (Lysosomes)</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #6c5ce7;"></div>
+                    <div class="legend-text">소포체 (ER)</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #a29bfe;"></div>
+                    <div class="legend-text">돌기 (Projections)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 면역세포 갤러리 -->
+        <div class="cell-gallery">
+            <!-- 대식세포 -->
+            <div class="cell-card macrophage" onclick="toggleDetails(this)">
+                <div class="cell-visual">
+                    <svg class="cell-svg" viewBox="0 0 200 200" width="250" height="250">
+                        <!-- 세포막 (불규칙한 형태) -->
+                        <path d="M50 100 C30 80, 40 60, 70 50 C100 40, 130 45, 150 70 C170 90, 165 120, 140 140 C120 160, 90 155, 70 135 C50 120, 45 110, 50 100 Z" 
+                              fill="#e8f5e8" stroke="#27ae60" stroke-width="3" opacity="0.9"/>
+                        
+                        <!-- 위족 (pseudopodia) -->
+                        <path d="M70 50 C60 40, 65 30, 75 35" fill="none" stroke="#27ae60" stroke-width="4" stroke-linecap="round"/>
+                        <path d="M150 70 C160 60, 170 65, 165 75" fill="none" stroke="#27ae60" stroke-width="4" stroke-linecap="round"/>
+                        <path d="M140 140 C150 150, 145 160, 135 155" fill="none" stroke="#27ae60" stroke-width="4" stroke-linecap="round"/>
+                        
+                        <!-- 핵 (큰 핵) -->
+                        <ellipse cx="100" cy="90" rx="25" ry="20" fill="#ff6b6b" opacity="0.8"/>
+                        <ellipse cx="105" cy="95" rx="3" ry="3" fill="#c0392b"/>
+                        <ellipse cx="95" cy="85" rx="2" ry="2" fill="#c0392b"/>
+                        
+                        <!-- 리소솜들 -->
+                        <circle cx="75" cy="75" r="4" fill="#f9ca24"/>
+                        <circle cx="125" cy="75" r="3" fill="#f9ca24"/>
+                        <circle cx="85" cy="115" r="3" fill="#f9ca24"/>
+                        <circle cx="115" cy="110" r="4" fill="#f9ca24"/>
+                        <circle cx="70" cy="105" r="3" fill="#f9ca24"/>
+                        <circle cx="130" cy="100" r="3" fill="#f9ca24"/>
+                        
+                        <!-- 미토콘드리아 -->
+                        <ellipse cx="80" cy="120" rx="6" ry="3" fill="#e67e22"/>
+                        <ellipse cx="120" cy="80" rx="5" ry="3" fill="#e67e22"/>
+                    </svg>
+                </div>
+                
+                <div class="cell-info">
+                    <div class="cell-name">대식세포 (Macrophage)</div>
+                    <div class="cell-size">직경: 15-20μm</div>
+                    
+                    <div class="structure-features">
+                        <div class="feature-box macrophage-color">
+                            <div class="feature-title">불규칙한 형태</div>
+                            <div class="feature-desc">아메바 모양으로 변형 가능</div>
+                        </div>
+                        <div class="feature-box macrophage-color">
+                            <div class="feature-title">다수의 위족</div>
+                            <div class="feature-desc">능동적 이동 및 포식</div>
+                        </div>
+                        <div class="feature-box macrophage-color">
+                            <div class="feature-title">큰 핵</div>
+                            <div class="feature-desc">활발한 유전자 발현</div>
+                        </div>
+                        <div class="feature-box macrophage-color">
+                            <div class="feature-title">풍부한 리소솜</div>
+                            <div class="feature-desc">강력한 소화 능력</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detailed-structure">
+                        <div class="structure-list">
+                            <div class="structure-item">
+                                <div class="structure-name">위족 (Pseudopodia)</div>
+                                <div class="structure-function">세포막 연장으로 이동과 포식에 사용</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">식세포소포</div>
+                                <div class="structure-function">병원체를 감싸서 내부로 끌어들임</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">라이소솜</div>
+                                <div class="structure-function">소화효소로 병원체 분해</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">골지체</div>
+                                <div class="structure-function">사이토카인과 단백질 가공</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 호중구 -->
+            <div class="cell-card neutrophil" onclick="toggleDetails(this)">
+                <div class="cell-visual">
+                    <svg class="cell-svg" viewBox="0 0 200 200" width="250" height="250">
+                        <!-- 세포막 (원형) -->
+                        <circle cx="100" cy="100" r="45" fill="#e3f2fd" stroke="#2196f3" stroke-width="3" opacity="0.9"/>
+                        
+                        <!-- 다엽성 핵 (3엽) -->
+                        <path d="M70 80 C75 70, 85 75, 80 85 C85 95, 75 100, 70 90 Z" fill="#ff6b6b" opacity="0.8"/>
+                        <path d="M90 75 C100 65, 110 70, 105 80 C110 90, 100 95, 90 85 Z" fill="#ff6b6b" opacity="0.8"/>
+                        <path d="M110 85 C120 75, 130 80, 125 90 C130 100, 120 105, 110 95 Z" fill="#ff6b6b" opacity="0.8"/>
+                        
+                        <!-- 핵 연결부 -->
+                        <path d="M80 85 Q85 82 90 85" fill="none" stroke="#e74c3c" stroke-width="2"/>
+                        <path d="M105 85 Q107 82 110 85" fill="none" stroke="#e74c3c" stroke-width="2"/>
+                        
+                        <!-- 1차 과립 (azurophilic) -->
+                        <circle cx="75" cy="110" r="2" fill="#8e44ad"/>
+                        <circle cx="90" cy="115" r="2" fill="#8e44ad"/>
+                        <circle cx="110" cy="110" r="2" fill="#8e44ad"/>
+                        <circle cx="125" cy="115" r="2" fill="#8e44ad"/>
+                        
+                        <!-- 2차 과립 (specific) -->
+                        <circle cx="65" cy="100" r="1.5" fill="#45b7d1"/>
+                        <circle cx="80" cy="105" r="1.5" fill="#45b7d1"/>
+                        <circle cx="95" cy="100" r="1.5" fill="#45b7d1"/>
+                        <circle cx="105" cy="105" r="1.5" fill="#45b7d1"/>
+                        <circle cx="115" cy="100" r="1.5" fill="#45b7d1"/>
+                        <circle cx="130" cy="105" r="1.5" fill="#45b7d1"/>
+                        <circle cx="85" cy="120" r="1.5" fill="#45b7d1"/>
+                        <circle cx="115" cy="125" r="1.5" fill="#45b7d1"/>
+                        
+                        <!-- 당원 과립 -->
+                        <circle cx="70" cy="125" r="1" fill="#f39c12"/>
+                        <circle cx="100" cy="130" r="1" fill="#f39c12"/>
+                        <circle cx="120" cy="120" r="1" fill="#f39c12"/>
+                    </svg>
+                </div>
+                
+                <div class="cell-info">
+                    <div class="cell-name">호중구 (Neutrophil)</div>
+                    <div class="cell-size">직경: 10-12μm</div>
+                    
+                    <div class="structure-features">
+                        <div class="feature-box neutrophil-color">
+                            <div class="feature-title">다엽성 핵</div>
+                            <div class="feature-desc">2-5개 엽으로 분엽</div>
+                        </div>
+                        <div class="feature-box neutrophil-color">
+                            <div class="feature-title">풍부한 과립</div>
+                            <div class="feature-desc">1차, 2차, 3차 과립</div>
+                        </div>
+                        <div class="feature-box neutrophil-color">
+                            <div class="feature-title">유연한 막</div>
+                            <div class="feature-desc">좁은 틈새 통과</div>
+                        </div>
+                        <div class="feature-box neutrophil-color">
+                            <div class="feature-title">짧은 수명</div>
+                            <div class="feature-desc">24-48시간</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detailed-structure">
+                        <div class="structure-list">
+                            <div class="structure-item">
+                                <div class="structure-name">1차 과립</div>
+                                <div class="structure-function">미엘로퍼옥시다제, 라이소자임 함유</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">2차 과립</div>
+                                <div class="structure-function">락토페린, 콜라게나제 함유</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">다엽핵</div>
+                                <div class="structure-function">좁은 모세혈관 통과 용이</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">당원 과립</div>
+                                <div class="structure-function">무산소 대사를 위한 에너지</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 수지상세포 -->
+            <div class="cell-card dendritic" onclick="toggleDetails(this)">
+                <div class="cell-visual">
+                    <svg class="cell-svg" viewBox="0 0 250 200" width="280" height="250">
+                        <!-- 세포체 -->
+                        <ellipse cx="125" cy="100" rx="30" ry="25" fill="#fff3e0" stroke="#ff9800" stroke-width="3" opacity="0.9"/>
+                        
+                        <!-- 수지상 돌기들 -->
+                        <path d="M95 85 Q80 70 70 60 Q65 55 75 50" fill="none" stroke="#a29bfe" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M95 85 Q85 65 85 45 Q85 40 90 35" fill="none" stroke="#a29bfe" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M110 75 Q105 55 110 35 Q115 30 120 25" fill="none" stroke="#a29bfe" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M140 75 Q145 55 145 35 Q145 30 150 25" fill="none" stroke="#a29bfe" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M155 85 Q170 70 180 60 Q185 55 175 50" fill="none" stroke="#a29bfe" stroke-width="3" stroke-linecap="round"/>
+                        
+                        <!-- 하단 돌기들 -->
+                        <path d="M95 115 Q80 130 70 140 Q65 145 75 150" fill="none" stroke="#a29bfe" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M110 125 Q105 145 110 165 Q115 170 120 175" fill="none" stroke="#a29bfe" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M140 125 Q145 145 145 165 Q145 170 150 175" fill="none" stroke="#a29bfe" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M155 115 Q170 130 180 140 Q185 145 175 150" fill="none" stroke="#a29bfe" stroke-width="3" stroke-linecap="round"/>
+                        
+                        <!-- 측면 돌기들 -->
+                        <path d="M95 100 Q70 95 50 90 Q45 88 50 85" fill="none" stroke="#a29bfe" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M155 100 Q180 95 200 90 Q205 88 200 85" fill="none" stroke="#a29bfe" stroke-width="3" stroke-linecap="round"/>
+                        
+                        <!-- 핵 -->
+                        <ellipse cx="125" cy="100" rx="15" ry="12" fill="#ff6b6b" opacity="0.8"/>
+                        <ellipse cx="128" cy="103" rx="2" ry="2" fill="#c0392b"/>
+                        
+                        <!-- MHC 복합체 (표면) -->
+                        <circle cx="110" cy="85" r="1.5" fill="#e74c3c"/>
+                        <circle cx="140" cy="85" r="1.5" fill="#e74c3c"/>
+                        <circle cx="115" cy="115" r="1.5" fill="#e74c3c"/>
+                        <circle cx="135" cy="115" r="1.5" fill="#e74c3c"/>
+                        
+                        <!-- 엔도솜 -->
+                        <ellipse cx="110" cy="95" rx="4" ry="2" fill="#6c5ce7" opacity="0.7"/>
+                        <ellipse cx="140" cy="105" rx="3" ry="2" fill="#6c5ce7" opacity="0.7"/>
+                    </svg>
+                </div>
+                
+                <div class="cell-info">
+                    <div class="cell-name">수지상세포 (Dendritic Cell)</div>
+                    <div class="cell-size">직경: 10-15μm + 돌기</div>
+                    
+                    <div class="structure-features">
+                        <div class="feature-box dendritic-color">
+                            <div class="feature-title">수지상 돌기</div>
+                            <div class="feature-desc">나뭇가지 모양 연장</div>
+                        </div>
+                        <div class="feature-box dendritic-color">
+                            <div class="feature-title">큰 표면적</div>
+                            <div class="feature-desc">최대 접촉면 확보</div>
+                        </div>
+                        <div class="feature-box dendritic-color">
+                            <div class="feature-title">MHC 분자</div>
+                            <div class="feature-desc">항원 제시 특화</div>
+                        </div>
+                        <div class="feature-box dendritic-color">
+                            <div class="feature-title">이동성</div>
+                            <div class="feature-desc">조직-림프절 이동</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detailed-structure">
+                        <div class="structure-list">
+                            <div class="structure-item">
+                                <div class="structure-name">수지상 돌기</div>
+                                <div class="structure-function">항원 샘플링을 위한 접촉면 확대</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">엔도솜</div>
+                                <div class="structure-function">항원 가공 및 처리</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">MHC 복합체</div>
+                                <div class="structure-function">T세포에 항원 정보 전달</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">이동 장치</div>
+                                <div class="structure-function">림프절로의 정보 전달</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T세포 -->
+            <div class="cell-card tcell" onclick="toggleDetails(this)">
+                <div class="cell-visual">
+                    <svg class="cell-svg" viewBox="0 0 200 200" width="200" height="200">
+                        <!-- 세포막 (작은 원형) -->
+                        <circle cx="100" cy="100" r="35" fill="#e8f5e8" stroke="#27ae60" stroke-width="3" opacity="0.9"/>
+                        
+                        <!-- 큰 핵 (세포의 대부분 차지) -->
+                        <circle cx="100" cy="100" r="25" fill="#ff6b6b" opacity="0.8"/>
+                        
+                        <!-- 염색질 -->
+                        <path d="M85 90 Q90 85 95 90 Q100 85 105 90 Q110 85 115 90" 
+                              fill="none" stroke="#c0392b" stroke-width="2" opacity="0.7"/>
+                        <path d="M85 100 Q95 105 105 100 Q115 105 115 100" 
+                              fill="none" stroke="#c0392b" stroke-width="2" opacity="0.7"/>
+                        <path d="M85 110 Q90 115 95 110 Q100 115 105 110 Q110 115 115 110" 
+                              fill="none" stroke="#c0392b" stroke-width="2" opacity="0.7"/>
+                        
+                        <!-- TCR 복합체 (표면) -->
+                        <circle cx="85" cy="85" r="2" fill="#e74c3c"/>
+                        <circle cx="115" cy="85" r="2" fill="#e74c3c"/>
+                        <circle cx="85" cy="115" r="2" fill="#e74c3c"/>
+                        <circle cx="115" cy="115" r="2" fill="#e74c3c"/>
+                        <circle cx="75" cy="100" r="2" fill="#e74c3c"/>
+                        <circle cx="125" cy="100" r="2" fill="#e74c3c"/>
+                        
+                        <!-- 소량의 세포질 -->
+                        <path d="M75 100 Q78 95 82 100" fill="#4ecdc4" opacity="0.5"/>
+                        <path d="M118 100 Q122 95 125 100" fill="#4ecdc4" opacity="0.5"/>
+                        
+                        <!-- 미토콘드리아 (소량) -->
+                        <ellipse cx="78" cy="105" rx="2" ry="1" fill="#e67e22"/>
+                        <ellipse cx="122" cy="95" rx="2" ry="1" fill="#e67e22"/>
+                    </svg>
+                </div>
+                
+                <div class="cell-info">
+                    <div class="cell-name">T세포 (T Lymphocyte)</div>
+                    <div class="cell-size">직경: 6-8μm</div>
+                    
+                    <div class="structure-features">
+                        <div class="feature-box tcell-color">
+                            <div class="feature-title">작은 크기</div>
+                            <div class="feature-desc">효율적 순환</div>
+                        </div>
+                        <div class="feature-box tcell-color">
+                            <div class="feature-title">큰 핵</div>
+                            <div class="feature-desc">세포의 80% 차지</div>
+                        </div>
+                        <div class="feature-box tcell-color">
+                            <div class="feature-title">TCR 복합체</div>
+                            <div class="feature-desc">항원 특이적 인식</div>
+                        </div>
+                        <div class="feature-box tcell-color">
+                            <div class="feature-title">적은 세포질</div>
+                            <div class="feature-desc">에너지 효율성</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detailed-structure">
+                        <div class="structure-list">
+                            <div class="structure-item">
+                                <div class="structure-name">큰 핵</div>
+                                <div class="structure-function">활발한 유전자 발현 및 조절</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">TCR 복합체</div>
+                                <div class="structure-function">MHC-펩타이드 복합체 인식</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">최소 세포질</div>
+                                <div class="structure-function">이동성과 에너지 효율성 극대화</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">표면 수용체</div>
+                                <div class="structure-function">CD4/CD8, 공동자극 분자</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- B세포 (휴지기와 활성화) -->
+            <div class="cell-card bcell" onclick="toggleDetails(this)">
+                <div class="cell-visual">
+                    <svg class="cell-svg" viewBox="0 0 300 200" width="300" height="250">
+                        <!-- 휴지기 B세포 -->
+                        <g transform="translate(60, 0)">
+                            <text x="20" y="20" font-size="12" font-weight="bold" fill="#9b59b6">휴지기</text>
+                            <circle cx="40" cy="100" r="30" fill="#f3e5f5" stroke="#9b59b6" stroke-width="3" opacity="0.9"/>
+                            <!-- 핵 -->
+                            <circle cx="40" cy="100" r="20" fill="#ff6b6b" opacity="0.8"/>
+                            <!-- BCR -->
+                            <circle cx="25" cy="85" r="1.5" fill="#e74c3c"/>
+                            <circle cx="55" cy="85" r="1.5" fill="#e74c3c"/>
+                            <circle cx="25" cy="115" r="1.5" fill="#e74c3c"/>
+                            <circle cx="55" cy="115" r="1.5" fill="#e74c3c"/>
+                        </g>
+                        
+                        <!-- 화살표 -->
+                        <path d="M120 100 L140 100 M135 95 L140 100 L135 105" 
+                              stroke="#9b59b6" stroke-width="3" fill="none"/>
+                        <text x="122" y="90" font-size="10" fill="#9b59b6">활성화</text>
+                        
+                        <!-- 형질세포 -->
+                        <g transform="translate(160, 0)">
+                            <text x="20" y="20" font-size="12" font-weight="bold" fill="#9b59b6">형질세포</text>
+                            <ellipse cx="40" cy="100" rx="35" ry="40" fill="#f3e5f5" stroke="#9b59b6" stroke-width="3" opacity="0.9"/>
+                            <!-- 편심성 핵 -->
+                            <ellipse cx="30" cy="85" rx="12" ry="15" fill="#ff6b6b" opacity="0.8"/>
+                            <!-- 확장된 ER -->
+                            <path d="M50 70 Q65 75 60 85 Q55 90 60 95 Q65 100 60 105 Q55 110 60 115 Q65 125 50 130" 
+                                  fill="none" stroke="#6c5ce7" stroke-width="3" opacity="0.8"/>
+                            <path d="M45 75 Q55 78 52 85 Q48 88 52 95 Q55 98 52 105 Q48 108 52 115 Q55 120 45 125" 
+                                  fill="none" stroke="#6c5ce7" stroke-width="2" opacity="0.8"/>
+                            <!-- 골지체 -->
+                            <ellipse cx="55" cy="100" rx="8" ry="4" fill="#f39c12" opacity="0.7"/>
+                            <!-- 항체 분비 -->
+                            <circle cx="70" cy="90" r="2" fill="#e74c3c" opacity="0.6"/>
+                            <circle cx="75" cy="95" r="2" fill="#e74c3c" opacity="0.6"/>
+                            <circle cx="72" cy="105" r="2" fill="#e74c3c" opacity="0.6"/>
+                            <circle cx="78" cy="110" r="2" fill="#e74c3c" opacity="0.6"/>
+                        </g>
+                    </svg>
+                </div>
+                
+                <div class="cell-info">
+                    <div class="cell-name">B세포 (B Lymphocyte)</div>
+                    <div class="cell-size">직경: 6-8μm → 15-20μm</div>
+                    
+                    <div class="structure-features">
+                        <div class="feature-box bcell-color">
+                            <div class="feature-title">형태 변화</div>
+                            <div class="feature-desc">휴지기 → 형질세포</div>
+                        </div>
+                        <div class="feature-box bcell-color">
+                            <div class="feature-title">ER 확장</div>
+                            <div class="feature-desc">항체 대량 생산</div>
+                        </div>
+                        <div class="feature-box bcell-color">
+                            <div class="feature-title">BCR 복합체</div>
+                            <div class="feature-desc">표면 면역글로불린</div>
+                        </div>
+                        <div class="feature-box bcell-color">
+                            <div class="feature-title">분비 특화</div>
+                            <div class="feature-desc">항체 방출 시스템</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detailed-structure">
+                        <div class="structure-list">
+                            <div class="structure-item">
+                                <div class="structure-name">확장된 소포체</div>
+                                <div class="structure-function">항체 단백질 대량 합성</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">발달된 골지체</div>
+                                <div class="structure-function">항체 가공 및 포장</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">편심성 핵</div>
+                                <div class="structure-function">분비 방향 최적화</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">분비 소포</div>
+                                <div class="structure-function">완성된 항체 방출</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NK세포 -->
+            <div class="cell-card nkcell" onclick="toggleDetails(this)">
+                <div class="cell-visual">
+                    <svg class="cell-svg" viewBox="0 0 200 200" width="250" height="250">
+                        <!-- 세포막 (큰 림프구) -->
+                        <circle cx="100" cy="100" r="42" fill="#fce4ec" stroke="#e91e63" stroke-width="3" opacity="0.9"/>
+                        
+                        <!-- 핵 -->
+                        <ellipse cx="100" cy="95" rx="20" ry="18" fill="#ff6b6b" opacity="0.8"/>
+                        <ellipse cx="102" cy="98" rx="3" ry="3" fill="#c0392b"/>
+                        
+                        <!-- 세포독성 과립 (다수) -->
+                        <circle cx="75" cy="75" r="4" fill="#8e44ad" opacity="0.8"/>
+                        <circle cx="125" cy="75" r="3" fill="#8e44ad" opacity="0.8"/>
+                        <circle cx="80" cy="120" r="4" fill="#8e44ad" opacity="0.8"/>
+                        <circle cx="120" cy="120" r="3" fill="#8e44ad" opacity="0.8"/>
+                        <circle cx="65" cy="100" r="3" fill="#8e44ad" opacity="0.8"/>
+                        <circle cx="135" cy="100" r="4" fill="#8e44ad" opacity="0.8"/>
+                        <circle cx="90" cy="75" r="3" fill="#8e44ad" opacity="0.8"/>
+                        <circle cx="110" cy="125" r="3" fill="#8e44ad" opacity="0.8"/>
+                        
+                        <!-- 퍼포린/그란자임 과립 (특별히 표시) -->
+                        <circle cx="85" cy="85" r="2" fill="#e74c3c"/>
+                        <circle cx="115" cy="115" r="2" fill="#e74c3c"/>
+                        <circle cx="70" cy="110" r="2" fill="#e74c3c"/>
+                        <circle cx="130" cy="90" r="2" fill="#e74c3c"/>
+                        
+                        <!-- 활성화 수용체 -->
+                        <rect x="70" y="58" width="3" height="6" fill="#27ae60" rx="1"/>
+                        <rect x="127" y="58" width="3" height="6" fill="#27ae60" rx="1"/>
+                        <rect x="58" y="85" width="6" height="3" fill="#27ae60" rx="1"/>
+                        <rect x="136" y="112" width="6" height="3" fill="#27ae60" rx="1"/>
+                        
+                        <!-- 억제 수용체 -->
+                        <rect x="85" y="58" width="3" height="6" fill="#e67e22" rx="1"/>
+                        <rect x="112" y="58" width="3" height="6" fill="#e67e22" rx="1"/>
+                        <rect x="58" y="100" width="6" height="3" fill="#e67e22" rx="1"/>
+                        <rect x="136" y="97" width="6" height="3" fill="#e67e22" rx="1"/>
+                    </svg>
+                </div>
+                
+                <div class="cell-info">
+                    <div class="cell-name">NK세포 (Natural Killer Cell)</div>
+                    <div class="cell-size">직경: 10-15μm</div>
+                    
+                    <div class="structure-features">
+                        <div class="feature-box nkcell-color">
+                            <div class="feature-title">큰 림프구</div>
+                            <div class="feature-desc">강력한 세포독성</div>
+                        </div>
+                        <div class="feature-box nkcell-color">
+                            <div class="feature-title">풍부한 과립</div>
+                            <div class="feature-desc">퍼포린, 그란자임</div>
+                        </div>
+                        <div class="feature-box nkcell-color">
+                            <div class="feature-title">다양한 수용체</div>
+                            <div class="feature-desc">활성화/억제 균형</div>
+                        </div>
+                        <div class="feature-box nkcell-color">
+                            <div class="feature-title">즉각 반응</div>
+                            <div class="feature-desc">사전 활성화 불요</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detailed-structure">
+                        <div class="structure-list">
+                            <div class="structure-item">
+                                <div class="structure-name">세포독성 과립</div>
+                                <div class="structure-function">퍼포린으로 구멍, 그란자임으로 세포사멸</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">활성화 수용체</div>
+                                <div class="structure-function">스트레스 신호, 바이러스 감염 감지</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">억제 수용체</div>
+                                <div class="structure-function">MHC I 인식으로 자기세포 보호</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">분비 장치</div>
+                                <div class="structure-function">IFN-γ, TNF-α 등 사이토카인</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 비만세포 -->
+            <div class="cell-card mastcell" onclick="toggleDetails(this)">
+                <div class="cell-visual">
+                    <svg class="cell-svg" viewBox="0 0 200 200" width="250" height="250">
+                        <!-- 세포막 -->
+                        <circle cx="100" cy="100" r="45" fill="#e1f5fe" stroke="#2196f3" stroke-width="3" opacity="0.9"/>
+                        
+                        <!-- 핵 (과립에 가려서 작게 보임) -->
+                        <ellipse cx="100" cy="100" rx="15" ry="12" fill="#ff6b6b" opacity="0.6"/>
+                        
+                        <!-- 거대한 과립들 (세포를 가득 채움) -->
+                        <circle cx="75" cy="75" r="8" fill="#45b7d1" opacity="0.8"/>
+                        <circle cx="125" cy="75" r="7" fill="#45b7d1" opacity="0.8"/>
+                        <circle cx="75" cy="125" r="8" fill="#45b7d1" opacity="0.8"/>
+                        <circle cx="125" cy="125" r="7" fill="#45b7d1" opacity="0.8"/>
+                        <circle cx="65" cy="100" r="6" fill="#45b7d1" opacity="0.8"/>
+                        <circle cx="135" cy="100" r="7" fill="#45b7d1" opacity="0.8"/>
+                        <circle cx="90" cy="65" r="5" fill="#45b7d1" opacity="0.8"/>
+                        <circle cx="110" cy="65" r="6" fill="#45b7d1" opacity="0.8"/>
+                        <circle cx="90" cy="135" r="6" fill="#45b7d1" opacity="0.8"/>
+                        <circle cx="110" cy="135" r="5" fill="#45b7d1" opacity="0.8"/>
+                        
+                        <!-- 과립 내 내용물 표시 -->
+                        <circle cx="75" cy="75" r="3" fill="#8e44ad" opacity="0.6"/> <!-- 히스타민 -->
+                        <circle cx="125" cy="75" r="2" fill="#e67e22" opacity="0.6"/> <!-- 헤파린 -->
+                        <circle cx="75" cy="125" r="3" fill="#8e44ad" opacity="0.6"/>
+                        <circle cx="125" cy="125" r="2" fill="#e67e22" opacity="0.6"/>
+                        
+                        <!-- FcεRI 수용체 -->
+                        <rect x="70" y="55" width="4" height="8" fill="#e74c3c" rx="2"/>
+                        <rect x="126" y="55" width="4" height="8" fill="#e74c3c" rx="2"/>
+                        <rect x="145" y="85" width="8" height="4" fill="#e74c3c" rx="2"/>
+                        <rect x="145" y="111" width="8" height="4" fill="#e74c3c" rx="2"/>
+                        <rect x="70" y="137" width="4" height="8" fill="#e74c3c" rx="2"/>
+                        <rect x="126" y="137" width="4" height="8" fill="#e74c3c" rx="2"/>
+                        <rect x="47" y="85" width="8" height="4" fill="#e74c3c" rx="2"/>
+                        <rect x="47" y="111" width="8" height="4" fill="#e74c3c" rx="2"/>
+                    </svg>
+                </div>
+                
+                <div class="cell-info">
+                    <div class="cell-name">비만세포 (Mast Cell)</div>
+                    <div class="cell-size">직경: 10-15μm</div>
+                    
+                    <div class="structure-features">
+                        <div class="feature-box mastcell-color">
+                            <div class="feature-title">거대 과립</div>
+                            <div class="feature-desc">세포를 가득 채움</div>
+                        </div>
+                        <div class="feature-box mastcell-color">
+                            <div class="feature-title">히스타민 저장</div>
+                            <div class="feature-desc">즉각적 분비 준비</div>
+                        </div>
+                        <div class="feature-box mastcell-color">
+                            <div class="feature-title">FcεRI 수용체</div>
+                            <div class="feature-desc">IgE 항체 결합</div>
+                        </div>
+                        <div class="feature-box mastcell-color">
+                            <div class="feature-title">조직 정착</div>
+                            <div class="feature-desc">감시 전담</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detailed-structure">
+                        <div class="structure-list">
+                            <div class="structure-item">
+                                <div class="structure-name">거대 과립</div>
+                                <div class="structure-function">히스타민, 헤파린, 트립테이스 대량 저장</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">FcεRI 수용체</div>
+                                <div class="structure-function">IgE 결합으로 알레르기 반응 개시</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">분비 메커니즘</div>
+                                <div class="structure-function">수초 내 전체 내용물 방출</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">재생 능력</div>
+                                <div class="structure-function">탈과립 후 새 과립 합성</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 호산구 -->
+            <div class="cell-card eosinophil" onclick="toggleDetails(this)">
+                <div class="cell-visual">
+                    <svg class="cell-svg" viewBox="0 0 200 200" width="250" height="250">
+                        <!-- 세포막 -->
+                        <circle cx="100" cy="100" r="40" fill="#e0f2f1" stroke="#00bcd4" stroke-width="3" opacity="0.9"/>
+                        
+                        <!-- 이중핵 (안경 모양) -->
+                        <ellipse cx="85" cy="95" rx="12" ry="15" fill="#ff6b6b" opacity="0.8"/>
+                        <ellipse cx="115" cy="95" rx="12" ry="15" fill="#ff6b6b" opacity="0.8"/>
+                        <!-- 핵 연결부 -->
+                        <ellipse cx="100" cy="95" rx="8" ry="3" fill="#ff6b6b" opacity="0.6"/>
+                        
+                        <!-- 특수 과립 (호산성) -->
+                        <ellipse cx="75" cy="110" rx="4" ry="6" fill="#ff5722" opacity="0.8"/>
+                        <ellipse cx="125" cy="110" rx="4" ry="6" fill="#ff5722" opacity="0.8"/>
+                        <ellipse cx="85" cy="125" rx="3" ry="5" fill="#ff5722" opacity="0.8"/>
+                        <ellipse cx="115" cy="125" rx="3" ry="5" fill="#ff5722" opacity="0.8"/>
+                        <ellipse cx="100" cy="120" rx="4" ry="5" fill="#ff5722" opacity="0.8"/>
+                        
+                        <!-- 결정체 과립 (MBP 함유) -->
+                        <rect x="72" y="107" width="6" height="3" fill="#8e24aa" opacity="0.9" rx="1"/>
+                        <rect x="122" y="107" width="6" height="3" fill="#8e24aa" opacity="0.9" rx="1"/>
+                        <rect x="82" y="122" width="5" height="3" fill="#8e24aa" opacity="0.9" rx="1"/>
+                        <rect x="113" y="122" width="5" height="3" fill="#8e24aa" opacity="0.9" rx="1"/>
+                        <rect x="97" y="117" width="6" height="3" fill="#8e24aa" opacity="0.9" rx="1"/>
+                        
+                        <!-- 1차 과립 -->
+                        <circle cx="70" cy="85" r="2" fill="#45b7d1"/>
+                        <circle cx="130" cy="85" r="2" fill="#45b7d1"/>
+                        <circle cx="65" cy="105" r="2" fill="#45b7d1"/>
+                        <circle cx="135" cy="105" r="2" fill="#45b7d1"/>
+                        
+                        <!-- 리포솜 -->
+                        <ellipse cx="80" cy="75" rx="3" ry="2" fill="#ffa726"/>
+                        <ellipse cx="120" cy="75" rx="3" ry="2" fill="#ffa726"/>
+                    </svg>
+                </div>
+                
+                <div class="cell-info">
+                    <div class="cell-name">호산구 (Eosinophil)</div>
+                    <div class="cell-size">직경: 10-14μm</div>
+                    
+                    <div class="structure-features">
+                        <div class="feature-box eosinophil-color">
+                            <div class="feature-title">이중핵</div>
+                            <div class="feature-desc">안경 모양 핵</div>
+                        </div>
+                        <div class="feature-box eosinophil-color">
+                            <div class="feature-title">특수 과립</div>
+                            <div class="feature-desc">호산성 염색</div>
+                        </div>
+                        <div class="feature-box eosinophil-color">
+                            <div class="feature-title">결정체 구조</div>
+                            <div class="feature-desc">MBP 함유</div>
+                        </div>
+                        <div class="feature-box eosinophil-color">
+                            <div class="feature-title">기생충 전문</div>
+                            <div class="feature-desc">대형 병원체</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detailed-structure">
+                        <div class="structure-list">
+                            <div class="structure-item">
+                                <div class="structure-name">특수 과립</div>
+                                <div class="structure-function">MBP, ECP, EDN으로 기생충 공격</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">이중핵</div>
+                                <div class="structure-function">좁은 조직 공간 통과 용이</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">결정체 코어</div>
+                                <div class="structure-function">독성 단백질의 결정화 저장</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">리포솜</div>
+                                <div class="structure-function">류코트리엔, 프로스타글란딘 생성</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 호염기구 -->
+            <div class="cell-card basophil" onclick="toggleDetails(this)">
+                <div class="cell-visual">
+                    <svg class="cell-svg" viewBox="0 0 200 200" width="250" height="250">
+                        <!-- 세포막 -->
+                        <circle cx="100" cy="100" r="40" fill="#fce4ec" stroke="#ff5722" stroke-width="3" opacity="0.9"/>
+                        
+                        <!-- S자형 핵 (과립에 거의 가려짐) -->
+                        <path d="M70 85 Q80 80 85 90 Q90 100 95 95 Q105 85 115 90 Q125 95 130 105" 
+                              fill="none" stroke="#ff6b6b" stroke-width="6" opacity="0.6"/>
+                        
+                        <!-- 대형 염기성 과립 (세포를 가득 채움) -->
+                        <circle cx="75" cy="70" r="6" fill="#3f51b5" opacity="0.9"/>
+                        <circle cx="125" cy="70" r="7" fill="#3f51b5" opacity="0.9"/>
+                        <circle cx="75" cy="130" r="6" fill="#3f51b5" opacity="0.9"/>
+                        <circle cx="125" cy="130" r="7" fill="#3f51b5" opacity="0.9"/>
+                        <circle cx="60" cy="100" r="5" fill="#3f51b5" opacity="0.9"/>
+                        <circle cx="140" cy="100" r="6" fill="#3f51b5" opacity="0.9"/>
+                        <circle cx="90" cy="75" r="5" fill="#3f51b5" opacity="0.9"/>
+                        <circle cx="110" cy="75" r="4" fill="#3f51b5" opacity="0.9"/>
+                        <circle cx="90" cy="125" r="5" fill="#3f51b5" opacity="0.9"/>
+                        <circle cx="110" cy="125" r="6" fill="#3f51b5" opacity="0.9"/>
+                        <circle cx="85" cy="100" r="4" fill="#3f51b5" opacity="0.9"/>
+                        <circle cx="115" cy="100" r="4" fill="#3f51b5" opacity="0.9"/>
+                        
+                        <!-- 과립 내 히스타민 -->
+                        <circle cx="75" cy="70" r="2" fill="#8e44ad" opacity="0.8"/>
+                        <circle cx="125" cy="70" r="2" fill="#8e44ad" opacity="0.8"/>
+                        <circle cx="75" cy="130" r="2" fill="#8e44ad" opacity="0.8"/>
+                        <circle cx="125" cy="130" r="2" fill="#8e44ad" opacity="0.8"/>
+                        
+                        <!-- FcεRI 수용체 -->
+                        <rect x="85" y="55" width="3" height="6" fill="#e74c3c" rx="1"/>
+                        <rect x="112" y="55" width="3" height="6" fill="#e74c3c" rx="1"/>
+                        <rect x="145" y="88" width="6" height="3" fill="#e74c3c" rx="1"/>
+                        <rect x="145" y="109" width="6" height="3" fill="#e74c3c" rx="1"/>
+                        <rect x="85" y="139" width="3" height="6" fill="#e74c3c" rx="1"/>
+                        <rect x="112" y="139" width="3" height="6" fill="#e74c3c" rx="1"/>
+                        <rect x="49" y="88" width="6" height="3" fill="#e74c3c" rx="1"/>
+                        <rect x="49" y="109" width="6" height="3" fill="#e74c3c" rx="1"/>
+                    </svg>
+                </div>
+                
+                <div class="cell-info">
+                    <div class="cell-name">호염기구 (Basophil)</div>
+                    <div class="cell-size">직경: 10-14μm (&lt;1%)</div>
+                    
+                    <div class="structure-features">
+                        <div class="feature-box basophil-color">
+                            <div class="feature-title">염기성 과립</div>
+                            <div class="feature-desc">파란색 염색</div>
+                        </div>
+                        <div class="feature-box basophil-color">
+                            <div class="feature-title">S자형 핵</div>
+                            <div class="feature-desc">과립에 가려짐</div>
+                        </div>
+                        <div class="feature-box basophil-color">
+                            <div class="feature-title">순환성</div>
+                            <div class="feature-desc">혈액 내 이동</div>
+                        </div>
+                        <div class="feature-box basophil-color">
+                            <div class="feature-title">희귀성</div>
+                            <div class="feature-desc">백혈구의 &lt;1%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detailed-structure">
+                        <div class="structure-list">
+                            <div class="structure-item">
+                                <div class="structure-name">염기성 과립</div>
+                                <div class="structure-function">히스타민, 류코트리엔 고농도 저장</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">FcεRI 수용체</div>
+                                <div class="structure-function">비만세포와 유사한 IgE 매개 반응</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">순환 특성</div>
+                                <div class="structure-function">전신적 알레르기 반응 매개</div>
+                            </div>
+                            <div class="structure-item">
+                                <div class="structure-name">짧은 수명</div>
+                                <div class="structure-function">1-2일 빠른 소모형 반응</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 크기 비교 뷰어 -->
+        <div class="comparison-viewer">
+            <div class="comparison-title">📏 면역세포 크기 비교</div>
+            
+            <div class="size-comparison">
+                <div class="size-item">
+                    <div class="size-circle" style="width: 30px; height: 30px; background: #27ae60;"></div>
+                    <div class="size-label">T세포</div>
+                    <div class="size-value">6-8μm</div>
+                </div>
+                <div class="size-item">
+                    <div class="size-circle" style="width: 35px; height: 35px; background: #9b59b6;"></div>
+                    <div class="size-label">B세포</div>
+                    <div class="size-value">6-8μm</div>
+                </div>
+                <div class="size-item">
+                    <div class="size-circle" style="width: 45px; height: 45px; background: #3498db;"></div>
+                    <div class="size-label">호중구</div>
+                    <div class="size-value">10-12μm</div>
+                </div>
+                <div class="size-item">
+                    <div class="size-circle" style="width: 50px; height: 50px; background: #ff9800;"></div>
+                    <div class="size-label">수지상세포</div>
+                    <div class="size-value">10-15μm</div>
+                </div>
+                <div class="size-item">
+                    <div class="size-circle" style="width: 55px; height: 55px; background: #e91e63;"></div>
+                    <div class="size-label">NK세포</div>
+                    <div class="size-value">10-15μm</div>
+                </div>
+                <div class="size-item">
+                    <div class="size-circle" style="width: 55px; height: 55px; background: #2196f3;"></div>
+                    <div class="size-label">비만세포</div>
+                    <div class="size-value">10-15μm</div>
+                </div>
+                <div class="size-item">
+                    <div class="size-circle" style="width: 50px; height: 50px; background: #00bcd4;"></div>
+                    <div class="size-label">호산구</div>
+                    <div class="size-value">10-14μm</div>
+                </div>
+                <div class="size-item">
+                    <div class="size-circle" style="width: 50px; height: 50px; background: #ff5722;"></div>
+                    <div class="size-label">호염기구</div>
+                    <div class="size-value">10-14μm</div>
+                </div>
+                <div class="size-item">
+                    <div class="size-circle" style="width: 65px; height: 65px; background: #e74c3c;"></div>
+                    <div class="size-label">대식세포</div>
+                    <div class="size-value">15-20μm</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleDetails(card) {
+            const isExpanded = card.classList.contains('expanded');
+            
+            // 모든 카드 닫기
+            document.querySelectorAll('.cell-card').forEach(c => {
+                c.classList.remove('expanded');
+            });
+            
+            // 클릭한 카드가 닫혀있었다면 열기
+            if (!isExpanded) {
+                card.classList.add('expanded');
+            }
+        }
+
+        // 페이지 로드시 첫 번째 카드 자동 확장
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstCard = document.querySelector('.cell-card');
+            if (firstCard) {
+                firstCard.classList.add('expanded');
+            }
+        });
+    </script>
+</body>
+</html>
