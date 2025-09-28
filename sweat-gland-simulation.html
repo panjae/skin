@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>에크린 땀샘 이온 채널 시뮬레이션</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 1500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .simulation-container {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .gland-visual {
+            position: relative;
+            background: linear-gradient(to bottom, #fff5e6 0%, #ffe0cc 50%, #ffd4b3 100%);
+            border-radius: 15px;
+            padding: 20px;
+            height: 650px;
+            overflow: hidden;
+            border: 3px solid #ff9800;
+        }
+        
+        .control-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            height: 650px;
+            overflow-y: auto;
+        }
+        
+        /* 피부층 */
+        .epidermis {
+            position: absolute;
+            width: 100%;
+            height: 100px;
+            top: 0;
+            left: 0;
+            background: linear-gradient(to bottom, 
+                rgba(255, 221, 187, 0.9), 
+                rgba(255, 204, 170, 0.9));
+            border-bottom: 3px solid #d4a373;
+            z-index: 2;
+        }
+        
+        .epidermis-label {
+            text-align: center;
+            padding: 10px;
+            color: #8b4513;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .dermis {
+            position: absolute;
+            width: 100%;
+            height: 550px;
+            top: 100px;
+            left: 0;
+            background: linear-gradient(to bottom, 
+                rgba(255, 204, 170, 0.7), 
+                rgba(255, 170, 136, 0.7));
+            z-index: 1;
+        }
+        
+        .dermis-label {
+            text-align: center;
+            padding: 10px;
+            color: #a0522d;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        /* 땀샘 구조물 */
+        .sweat-gland-container {
+            position: absolute;
+            width: 500px;
+            height: 550px;
+            left: 50%;
+            top: 50px;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+        
+        /* 아크로시린지움 (땀구멍) */
+        .acrosyringium {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            left: 50%;
+            top: 10px;
+            transform: translateX(-50%);
+            background: radial-gradient(circle, 
+                rgba(52, 152, 219, 0.8), 
+                rgba(52, 152, 219, 0.2));
+            border: 3px solid #2980b9;
+            border-radius: 50%;
+            z-index: 15;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+        }
+        
+        .acrosyringium::after {
+            content: '땀구멍';
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #2980b9;
+            font-weight: bold;
+        }
+        
+        /* 도관 */
+        .duct {
+            position: absolute;
+            width: 60px;
+            height: 280px;
+            left: 50%;
+            top: 60px;
+            transform: translateX(-50%);
+            background: linear-gradient(to bottom, 
+                #4CAF50 0%, 
+                #66BB6A 50%, 
+                #81C784 100%);
+            border: 3px solid #2E7D32;
+            border-radius: 20px;
+            z-index: 12;
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+            position: relative;
+        }
+        
+        .duct::after {
+            content: '도관';
+            position: absolute;
+            right: -50px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: #2E7D32;
+            font-weight: bold;
+        }
+        
+        /* 도관 이온 채널 표시 */
+        .duct-channels {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .enac-channel {
+            position: absolute;
+            left: -5px;
+            top: 30%;
+            width: 70px;
+            height: 30px;
+            background: linear-gradient(90deg, rgba(231, 76, 60, 0.3), rgba(231, 76, 60, 0.8));
+            border: 2px solid #e74c3c;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #c0392b;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .cftr-channel {
+            position: absolute;
+            right: -5px;
+            top: 50%;
+            width: 70px;
+            height: 30px;
+            background: linear-gradient(90deg, rgba(39, 174, 96, 0.8), rgba(39, 174, 96, 0.3));
+            border: 2px solid #27ae60;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #229954;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        /* 분비 코일 */
+        .secretory-coil {
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            left: 50%;
+            bottom: 20px;
+            transform: translateX(-50%);
+            background: radial-gradient(circle at center, 
+                #FFB300 0%, 
+                #FF9800 40%, 
+                #FF6F00 100%);
+            border: 4px solid #E65100;
+            border-radius: 50%;
+            z-index: 11;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #fff;
+            font-size: 16px;
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.5);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        
+        /* 분비 코일 이온 채널들 */
+        .coil-channels {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        /* NKCC1 - 기저막 (하단) */
+        .nkcc1-channel {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 35px;
+            background: linear-gradient(180deg, rgba(156, 39, 176, 0.8), rgba(156, 39, 176, 0.3));
+            border: 2px solid #7b1fa2;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 20;
+        }
+        
+        /* ANO1 - 정단막 (상단) */
+        .ano1-channel {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 35px;
+            background: linear-gradient(0deg, rgba(39, 174, 96, 0.8), rgba(39, 174, 96, 0.3));
+            border: 2px solid #27ae60;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 20;
+        }
+        
+        /* Na-K ATPase - 기저막 좌측 */
+        .na-k-atpase {
+            position: absolute;
+            bottom: 20px;
+            left: -10px;
+            width: 75px;
+            height: 35px;
+            background: linear-gradient(90deg, rgba(231, 76, 60, 0.8), rgba(230, 126, 34, 0.8));
+            border: 2px solid #c0392b;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: bold;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 20;
+        }
+        
+        /* K+ 채널 - 기저막 우측 */
+        .k-channel {
+            position: absolute;
+            bottom: 20px;
+            right: -10px;
+            width: 60px;
+            height: 35px;
+            background: linear-gradient(90deg, rgba(142, 68, 173, 0.8), rgba(142, 68, 173, 0.3));
+            border: 2px solid #8e44ad;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 20;
+        }
+        
+        /* AQP5 - 물 채널 (좌우) */
+        .aqp5-left, .aqp5-right {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 30px;
+            background: linear-gradient(90deg, rgba(52, 152, 219, 0.8), rgba(52, 152, 219, 0.3));
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 20;
+        }
+        
+        .aqp5-left {
+            left: -10px;
+        }
+        
+        .aqp5-right {
+            right: -10px;
+        }
+        
+        /* 신경 말단 */
+        .nerve-terminal {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #e91e63, #c2185b);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+            z-index: 13;
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.5);
+            text-align: center;
+        }
+        
+        /* M3 수용체 표시 */
+        .m3-receptor {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            border: 2px solid #f57c00;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        /* 이온 파티클 */
+        .ion {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            opacity: 0;
+            z-index: 30;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .na-ion {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .cl-ion {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+        
+        .k-ion {
+            background: linear-gradient(135deg, #8e44ad, #7b1fa2);
+        }
+        
+        .water {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+        
+        .ach-molecule {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+            border-radius: 50%;
+            opacity: 0;
+            z-index: 21;
+            box-shadow: 0 2px 8px rgba(156, 39, 176, 0.5);
+        }
+        
+        /* 땀방울 */
+        .sweat-drop {
+            position: absolute;
+            width: 15px;
+            height: 20px;
+            background: linear-gradient(180deg, #3498db, #2980b9);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            opacity: 0;
+            z-index: 25;
+            box-shadow: 0 2px 6px rgba(52, 152, 219, 0.4);
+        }
+        
+        /* 컨트롤 버튼 */
+        .control-button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .control-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .stage-info {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .stage-info h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .stage-info p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .pressure-indicator {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .pressure-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .pressure-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+        
+        .legend-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .channel-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px;
+            background: white;
+            border-radius: 5px;
+            font-size: 11px;
+        }
+        
+        .channel-legend-box {
+            width: 40px;
+            height: 20px;
+            border-radius: 3px;
+            border: 2px solid;
+        }
+        
+        .stats-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .stat-box {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        /* 애니메이션 */
+        @keyframes moveUp {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-300px);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1) translateX(-50%);
+            }
+            50% { 
+                transform: scale(1.1) translateX(-50%);
+            }
+        }
+        
+        @keyframes glow {
+            0%, 100% { 
+                box-shadow: 0 6px 20px rgba(255, 152, 0, 0.5);
+            }
+            50% { 
+                box-shadow: 0 6px 30px rgba(255, 152, 0, 1);
+            }
+        }
+        
+        @keyframes channelPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+        
+        .active-stage {
+            animation: pulse 1s infinite;
+        }
+        
+        .glowing {
+            animation: glow 1s infinite;
+        }
+        
+        .channel-active {
+            animation: channelPulse 0.5s;
+            opacity: 1 !important;
+        }
+        
+        /* 채널별 특별 표시 */
+        .show-channels .nkcc1-channel,
+        .show-channels .ano1-channel,
+        .show-channels .na-k-atpase,
+        .show-channels .k-channel,
+        .show-channels .aqp5-left,
+        .show-channels .aqp5-right,
+        .show-channels .m3-receptor {
+            opacity: 0.6;
+        }
+        
+        .show-channels .enac-channel,
+        .show-channels .cftr-channel {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💧 에크린 땀샘 이온 채널 시뮬레이션</h1>
+        
+        <div class="simulation-container">
+            <div class="gland-visual">
+                <!-- 피부층 -->
+                <div class="epidermis">
+                    <div class="epidermis-label">표피 (Epidermis)</div>
+                </div>
+                <div class="dermis">
+                    <div class="dermis-label">진피 (Dermis)</div>
+                </div>
+                
+                <!-- 땀샘 구조물 -->
+                <div class="sweat-gland-container">
+                    <div class="acrosyringium" id="acrosyringium"></div>
+                    
+                    <!-- 도관과 채널들 -->
+                    <div class="duct" id="duct">
+                        <div class="duct-channels">
+                            <div class="enac-channel" id="enac">ENaC</div>
+                            <div class="cftr-channel" id="cftr">CFTR</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 분비 코일과 채널들 -->
+                    <div class="secretory-coil" id="coil">
+                        <span>분비 코일</span>
+                        <div class="coil-channels">
+                            <div class="nkcc1-channel" id="nkcc1">NKCC1</div>
+                            <div class="ano1-channel" id="ano1">ANO1</div>
+                            <div class="na-k-atpase" id="na-k-atpase">Na-K<br>ATPase</div>
+                            <div class="k-channel" id="k-channel">K⁺</div>
+                            <div class="aqp5-left" id="aqp5-left">AQP5</div>
+                            <div class="aqp5-right" id="aqp5-right">AQP5</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 신경 말단과 M3 수용체 -->
+                <div class="nerve-terminal" id="nerve">
+                    교감<br>신경
+                    <div class="m3-receptor" id="m3">M₃</div>
+                </div>
+                
+                <!-- 이온과 물 분자들을 위한 컨테이너 -->
+                <div id="particles"></div>
+                
+                <!-- 땀방울들을 위한 컨테이너 -->
+                <div id="sweatDrops"></div>
+            </div>
+            
+            <div class="control-panel">
+                <h2 style="color: #333; margin-bottom: 20px; text-align: center;">🎮 시뮬레이션 컨트롤</h2>
+                
+                <button class="control-button" onclick="startSimulation()">시뮬레이션 시작</button>
+                <button class="control-button" onclick="resetSimulation()">리셋</button>
+                <button class="control-button" onclick="toggleChannels()">채널 표시/숨기기</button>
+                
+                <div class="stage-info">
+                    <h3>현재 단계</h3>
+                    <p id="currentStage">대기 중...</p>
+                </div>
+                
+                <div class="pressure-indicator">
+                    <h4 style="margin-bottom: 10px;">삼투압 (mm Hg)</h4>
+                    <div class="pressure-bar">
+                        <div class="pressure-fill" id="pressureBar">0</div>
+                    </div>
+                </div>
+                
+                <div class="stats-panel">
+                    <div class="stat-box">
+                        <div class="stat-label">Na⁺ 농도</div>
+                        <div class="stat-value" id="naConc">145 mM</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Cl⁻ 농도</div>
+                        <div class="stat-value" id="clConc">110 mM</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">삼투질농도</div>
+                        <div class="stat-value" id="osmolality">300 mOsm</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">땀 생성량</div>
+                        <div class="stat-value" id="sweatVolume">0 μL</div>
+                    </div>
+                </div>
+                
+                <div class="stage-info" style="margin-top: 20px;">
+                    <h3>과정 설명</h3>
+                    <p id="stageDescription">시뮬레이션을 시작하면 에크린 땀샘의 이온 채널을 통한 작동 과정을 관찰할 수 있습니다.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-dot" style="background: linear-gradient(135deg, #e74c3c, #c0392b);"></div>
+                <span>Na⁺ (나트륨)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background: linear-gradient(135deg, #27ae60, #229954);"></div>
+                <span>Cl⁻ (염소)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background: linear-gradient(135deg, #8e44ad, #7b1fa2);"></div>
+                <span>K⁺ (칼륨)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background: linear-gradient(135deg, #3498db, #2980b9);"></div>
+                <span>H₂O (물)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background: linear-gradient(135deg, #9c27b0, #7b1fa2);"></div>
+                <span>ACh (아세틸콜린)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background: linear-gradient(135deg, #ffc107, #ff9800);"></div>
+                <span>M₃ 수용체</span>
+            </div>
+        </div>
+        
+        <div class="legend" style="margin-top: 10px;">
+            <div class="channel-legend-item">
+                <div class="channel-legend-box" style="background: rgba(156, 39, 176, 0.3); border-color: #7b1fa2;"></div>
+                <span>NKCC1 (Na-K-2Cl)</span>
+            </div>
+            <div class="channel-legend-item">
+                <div class="channel-legend-box" style="background: rgba(39, 174, 96, 0.3); border-color: #27ae60;"></div>
+                <span>ANO1 (Cl⁻ 채널)</span>
+            </div>
+            <div class="channel-legend-item">
+                <div class="channel-legend-box" style="background: rgba(231, 76, 60, 0.3); border-color: #c0392b;"></div>
+                <span>ENaC (Na⁺ 채널)</span>
+            </div>
+            <div class="channel-legend-item">
+                <div class="channel-legend-box" style="background: rgba(39, 174, 96, 0.3); border-color: #27ae60;"></div>
+                <span>CFTR (Cl⁻ 채널)</span>
+            </div>
+            <div class="channel-legend-item">
+                <div class="channel-legend-box" style="background: rgba(52, 152, 219, 0.3); border-color: #3498db;"></div>
+                <span>AQP5 (물 채널)</span>
+            </div>
+            <div class="channel-legend-item">
+                <div class="channel-legend-box" style="background: rgba(231, 76, 60, 0.3); border-color: #c0392b;"></div>
+                <span>Na-K ATPase</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let simulationRunning = false;
+        let currentStageIndex = 0;
+        let sweatVolume = 0;
+        let pressure = 0;
+        let showChannels = false;
+        
+        const stages = [
+            {
+                name: "1단계: 신경 자극과 M₃ 수용체 활성화",
+                description: "교감신경에서 ACh가 분비되어 M₃ 수용체에 결합하고 Ca²⁺가 증가합니다.",
+                duration: 3000,
+                action: stage1
+            },
+            {
+                name: "2단계: NKCC1을 통한 이온 유입",
+                description: "NKCC1 채널을 통해 Na⁺-K⁺-2Cl⁻가 세포 내로 유입됩니다.",
+                duration: 3000,
+                action: stage2
+            },
+            {
+                name: "3단계: ANO1을 통한 Cl⁻ 분비",
+                description: "Ca²⁺ 활성화로 ANO1 채널이 열리고 Cl⁻가 분비 코일로 이동합니다.",
+                duration: 3000,
+                action: stage3
+            },
+            {
+                name: "4단계: Na⁺ 세포간 이동과 AQP5를 통한 물 유입",
+                description: "전기화학적 구배로 Na⁺가 이동하고, AQP5를 통해 물이 유입되어 500 mm Hg 압력이 생성됩니다.",
+                duration: 3000,
+                action: stage4
+            },
+            {
+                name: "5단계: ENaC/CFTR을 통한 도관 재흡수",
+                description: "도관의 ENaC로 Na⁺, CFTR로 Cl⁻가 재흡수되어 저장성 땀(100 mOsm)이 됩니다.",
+                duration: 3500,
+                action: stage5
+            },
+            {
+                name: "6단계: 땀 배출",
+                description: "저장성 땀이 아크로시린지움을 통해 피부 표면으로 배출됩니다.",
+                duration: 3000,
+                action: stage6
+            }
+        ];
+        
+        function toggleChannels() {
+            const visualElement = document.querySelector('.gland-visual');
+            showChannels = !showChannels;
+            
+            if (showChannels) {
+                visualElement.classList.add('show-channels');
+            } else {
+                visualElement.classList.remove('show-channels');
+            }
+        }
+        
+        function activateChannel(channelId, duration = 1000) {
+            const channel = document.getElementById(channelId);
+            if (channel) {
+                channel.classList.add('channel-active');
+                channel.style.opacity = '1';
+                setTimeout(() => {
+                    channel.classList.remove('channel-active');
+                    if (!showChannels) {
+                        channel.style.opacity = '0';
+                    }
+                }, duration);
+            }
+        }
+        
+        function startSimulation() {
+            if (simulationRunning) return;
+            simulationRunning = true;
+            currentStageIndex = 0;
+            sweatVolume = 0;
+            pressure = 0;
+            runStage();
+        }
+        
+        function runStage() {
+            if (!simulationRunning || currentStageIndex >= stages.length) {
+                simulationRunning = false;
+                document.getElementById('currentStage').textContent = '시뮬레이션 완료!';
+                currentStageIndex = 0;
+                return;
+            }
+            
+            const stage = stages[currentStageIndex];
+            document.getElementById('currentStage').textContent = stage.name;
+            document.getElementById('stageDescription').textContent = stage.description;
+            
+            stage.action();
+            
+            setTimeout(() => {
+                currentStageIndex++;
+                runStage();
+            }, stage.duration);
+        }
+        
+        function stage1() {
+            // 신경 자극 - M3 수용체 활성화
+            const nerve = document.getElementById('nerve');
+            nerve.classList.add('glowing');
+            
+            // M3 수용체 표시
+            activateChannel('m3', 2500);
+            
+            // ACh 분자 생성 및 M3로 이동
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    createACh();
+                }, i * 300);
+            }
+            
+            setTimeout(() => {
+                nerve.classList.remove('glowing');
+            }, 2500);
+        }
+        
+        function stage2() {
+            // NKCC1을 통한 이온 유입
+            const coil = document.getElementById('coil');
+            coil.classList.add('active-stage');
+            
+            // NKCC1 채널 활성화
+            activateChannel('nkcc1', 2500);
+            
+            // Na+, K+, Cl- 이온들이 NKCC1을 통해 유입
+            for (let i = 0; i < 6; i++) {
+                setTimeout(() => {
+                    createNKCC1Ion('na', i);
+                    createNKCC1Ion('k', i);
+                    createNKCC1Ion('cl', i);
+                    createNKCC1Ion('cl', i);
+                }, i * 400);
+            }
+            
+            // Na-K ATPase도 활성화
+            setTimeout(() => {
+                activateChannel('na-k-atpase', 1500);
+            }, 1000);
+            
+            setTimeout(() => {
+                coil.classList.remove('active-stage');
+            }, 2500);
+        }
+        
+        function stage3() {
+            // ANO1을 통한 Cl- 분비
+            activateChannel('ano1', 2500);
+            
+            // Cl- 이온이 ANO1을 통해 분비
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    createANO1Secretion();
+                }, i * 300);
+            }
+            
+            // K+ 채널 활성화
+            setTimeout(() => {
+                activateChannel('k-channel', 1500);
+            }, 1000);
+        }
+        
+        function stage4() {
+            // Na+ 이동과 물 유입
+            // AQP5 채널 활성화
+            activateChannel('aqp5-left', 2500);
+            activateChannel('aqp5-right', 2500);
+            
+            // Na+ 세포간 이동
+            for (let i = 0; i < 6; i++) {
+                setTimeout(() => {
+                    createParacellularNa();
+                }, i * 400);
+            }
+            
+            // AQP5를 통한 물 유입
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    createWaterInflux();
+                }, i * 250);
+            }
+            
+            // 압력 증가
+            animatePressure(500);
+            sweatVolume += 50;
+            document.getElementById('sweatVolume').textContent = sweatVolume + ' μL';
+        }
+        
+        function stage5() {
+            // ENaC/CFTR을 통한 도관 재흡수
+            const duct = document.getElementById('duct');
+            duct.classList.add('glowing');
+            
+            // ENaC와 CFTR 채널 활성화
+            activateChannel('enac', 3000);
+            activateChannel('cftr', 3000);
+            
+            // ENaC를 통한 Na+ 재흡수
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    createENaCReabsorption(i);
+                }, i * 350);
+            }
+            
+            // CFTR을 통한 Cl- 재흡수
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    createCFTRReabsorption(i);
+                }, i * 350 + 150);
+            }
+            
+            // 농도 감소
+            let naConc = 145;
+            let clConc = 110;
+            let osmolality = 300;
+            
+            const interval = setInterval(() => {
+                if (!simulationRunning) {
+                    clearInterval(interval);
+                    return;
+                }
+                
+                naConc -= 15;
+                clConc -= 12;
+                osmolality -= 30;
+                
+                if (osmolality <= 100) {
+                    clearInterval(interval);
+                    naConc = 50;
+                    clConc = 40;
+                    osmolality = 100;
+                }
+                
+                updateStats(naConc, clConc, osmolality);
+            }, 400);
+            
+            setTimeout(() => {
+                duct.classList.remove('glowing');
+            }, 3000);
+        }
+        
+        function stage6() {
+            // 땀 배출
+            const acrosyringium = document.getElementById('acrosyringium');
+            acrosyringium.classList.add('glowing');
+            
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    createSweatDrop();
+                }, i * 400);
+            }
+            
+            sweatVolume += 100;
+            document.getElementById('sweatVolume').textContent = sweatVolume + ' μL';
+            
+            animatePressure(0);
+            
+            setTimeout(() => {
+                acrosyringium.classList.remove('glowing');
+            }, 2500);
+        }
+        
+        function createACh() {
+            const particles = document.getElementById('particles');
+            const ach = document.createElement('div');
+            ach.className = 'ach-molecule';
+            
+            // 신경에서 시작
+            ach.style.left = '50px';
+            ach.style.bottom = '50px';
+            ach.style.opacity = '1';
+            
+            particles.appendChild(ach);
+            
+            // M3 수용체로 이동
+            setTimeout(() => {
+                ach.style.transition = 'all 1s ease';
+                ach.style.left = '80px';
+                ach.style.bottom = '80px';
+            }, 100);
+            
+            setTimeout(() => {
+                ach.style.opacity = '0';
+            }, 1000);
+            
+            setTimeout(() => {
+                ach.remove();
+            }, 1500);
+        }
+        
+        function createNKCC1Ion(type, index) {
+            const particles = document.getElementById('particles');
+            const ion = document.createElement('div');
+            ion.className = 'ion';
+            
+            if (type === 'na') {
+                ion.classList.add('na-ion');
+                ion.textContent = 'Na⁺';
+            } else if (type === 'cl') {
+                ion.classList.add('cl-ion');
+                ion.textContent = 'Cl⁻';
+            } else if (type === 'k') {
+                ion.classList.add('k-ion');
+                ion.textContent = 'K⁺';
+            }
+            
+            // NKCC1 채널 위치에서 시작
+            const nkcc1 = document.getElementById('nkcc1');
+            const rect = nkcc1.getBoundingClientRect();
+            const containerRect = particles.parentElement.getBoundingClientRect();
+            
+            ion.style.left = (rect.left - containerRect.left + rect.width/2) + 'px';
+            ion.style.bottom = '200px';
+            ion.style.opacity = '1';
+            
+            particles.appendChild(ion);
+            
+            // 코일 중심으로 이동
+            setTimeout(() => {
+                ion.style.transition = 'all 1s ease';
+                const coilRect = document.getElementById('coil').getBoundingClientRect();
+                ion.style.left = (coilRect.left - containerRect.left + coilRect.width/2) + 'px';
+                ion.style.bottom = '120px';
+                ion.style.opacity = '0.7';
+            }, 100);
+            
+            setTimeout(() => {
+                ion.remove();
+            }, 1500);
+        }
+        
+        function createANO1Secretion() {
+            const particles = document.getElementById('particles');
+            const cl = document.createElement('div');
+            cl.className = 'ion cl-ion';
+            cl.textContent = 'Cl⁻';
+            
+            // 코일 중심에서 시작
+            const coilRect = document.getElementById('coil').getBoundingClientRect();
+            const containerRect = particles.parentElement.getBoundingClientRect();
+            
+            cl.style.left = (coilRect.left - containerRect.left + coilRect.width/2) + 'px';
+            cl.style.bottom = '120px';
+            cl.style.opacity = '1';
+            
+            particles.appendChild(cl);
+            
+            // ANO1을 통해 위로 분비
+            setTimeout(() => {
+                cl.style.transition = 'all 1s ease';
+                const ano1Rect = document.getElementById('ano1').getBoundingClientRect();
+                cl.style.left = (ano1Rect.left - containerRect.left + ano1Rect.width/2) + 'px';
+                cl.style.bottom = '200px';
+            }, 100);
+            
+            // 도관으로 이동
+            setTimeout(() => {
+                cl.style.animation = 'moveUp 2s ease-out forwards';
+            }, 1200);
+            
+            setTimeout(() => {
+                cl.remove();
+            }, 3500);
+        }
+        
+        function createParacellularNa() {
+            const particles = document.getElementById('particles');
+            const na = document.createElement('div');
+            na.className = 'ion na-ion';
+            na.textContent = 'Na⁺';
+            
+            // 코일 외부에서 시작
+            const coilRect = document.getElementById('coil').getBoundingClientRect();
+            const containerRect = particles.parentElement.getBoundingClientRect();
+            
+            na.style.left = (coilRect.left - containerRect.left - 20) + 'px';
+            na.style.bottom = '100px';
+            na.style.opacity = '1';
+            
+            particles.appendChild(na);
+            
+            // 코일 내부로 이동
+            setTimeout(() => {
+                na.style.transition = 'all 1s ease';
+                na.style.left = (coilRect.left - containerRect.left + coilRect.width/2) + 'px';
+                na.style.bottom = '120px';
+            }, 100);
+            
+            setTimeout(() => {
+                na.style.animation = 'moveUp 2s ease-out forwards';
+            }, 1200);
+            
+            setTimeout(() => {
+                na.remove();
+            }, 3500);
+        }
+        
+        function createWaterInflux() {
+            const particles = document.getElementById('particles');
+            const water = document.createElement('div');
+            water.className = 'ion water';
+            water.textContent = 'H₂O';
+            
+            // AQP5 채널 위치에서 시작
+            const aqp5 = Math.random() > 0.5 ? document.getElementById('aqp5-left') : document.getElementById('aqp5-right');
+            const rect = aqp5.getBoundingClientRect();
+            const containerRect = particles.parentElement.getBoundingClientRect();
+            
+            water.style.left = (rect.left - containerRect.left + rect.width/2) + 'px';
+            water.style.top = (rect.top - containerRect.top) + 'px';
+            water.style.opacity = '1';
+            
+            particles.appendChild(water);
+            
+            // 코일 중심으로 이동
+            setTimeout(() => {
+                water.style.transition = 'all 1s ease';
+                const coilRect = document.getElementById('coil').getBoundingClientRect();
+                water.style.left = (coilRect.left - containerRect.left + coilRect.width/2) + 'px';
+                water.style.top = (coilRect.top - containerRect.top + coilRect.height/2) + 'px';
+            }, 100);
+            
+            setTimeout(() => {
+                water.style.animation = 'moveUp 2s ease-out forwards';
+            }, 1200);
+            
+            setTimeout(() => {
+                water.remove();
+            }, 3500);
+        }
+        
+        function createENaCReabsorption(index) {
+            const particles = document.getElementById('particles');
+            const na = document.createElement('div');
+            na.className = 'ion na-ion';
+            na.textContent = 'Na⁺';
+            
+            // 도관 중심에서 시작
+            const ductRect = document.getElementById('duct').getBoundingClientRect();
+            const containerRect = particles.parentElement.getBoundingClientRect();
+            
+            const startY = ductRect.top - containerRect.top + ductRect.height - 50 - (index * 30);
+            
+            na.style.left = (ductRect.left - containerRect.left + ductRect.width/2) + 'px';
+            na.style.top = startY + 'px';
+            na.style.opacity = '1';
+            
+            particles.appendChild(na);
+            
+            // 위로 이동
+            setTimeout(() => {
+                na.style.transition = 'top 1s ease';
+                na.style.top = (startY - 50) + 'px';
+            }, 100);
+            
+            // ENaC를 통해 재흡수
+            setTimeout(() => {
+                na.style.transition = 'all 0.5s ease-out';
+                const enacRect = document.getElementById('enac').getBoundingClientRect();
+                na.style.left = (enacRect.left - containerRect.left - 30) + 'px';
+                na.style.opacity = '0';
+                na.style.transform = 'scale(0.3)';
+            }, 1200);
+            
+            setTimeout(() => {
+                na.remove();
+            }, 2000);
+        }
+        
+        function createCFTRReabsorption(index) {
+            const particles = document.getElementById('particles');
+            const cl = document.createElement('div');
+            cl.className = 'ion cl-ion';
+            cl.textContent = 'Cl⁻';
+            
+            // 도관 중심에서 시작
+            const ductRect = document.getElementById('duct').getBoundingClientRect();
+            const containerRect = particles.parentElement.getBoundingClientRect();
+            
+            const startY = ductRect.top - containerRect.top + ductRect.height - 50 - (index * 30);
+            
+            cl.style.left = (ductRect.left - containerRect.left + ductRect.width/2) + 'px';
+            cl.style.top = startY + 'px';
+            cl.style.opacity = '1';
+            
+            particles.appendChild(cl);
+            
+            // 위로 이동
+            setTimeout(() => {
+                cl.style.transition = 'top 1s ease';
+                cl.style.top = (startY - 50) + 'px';
+            }, 100);
+            
+            // CFTR을 통해 재흡수
+            setTimeout(() => {
+                cl.style.transition = 'all 0.5s ease-out';
+                const cftrRect = document.getElementById('cftr').getBoundingClientRect();
+                cl.style.left = (cftrRect.left - containerRect.left + cftrRect.width + 30) + 'px';
+                cl.style.opacity = '0';
+                cl.style.transform = 'scale(0.3)';
+            }, 1200);
+            
+            setTimeout(() => {
+                cl.remove();
+            }, 2000);
+        }
+        
+        function createSweatDrop() {
+            const drops = document.getElementById('sweatDrops');
+            const drop = document.createElement('div');
+            drop.className = 'sweat-drop';
+            
+            // 아크로시린지움 위치에서 시작
+            const acro = document.getElementById('acrosyringium');
+            const acroRect = acro.getBoundingClientRect();
+            const containerRect = drops.parentElement.getBoundingClientRect();
+            
+            drop.style.left = (acroRect.left - containerRect.left + acroRect.width/2 - 7.5) + 'px';
+            drop.style.top = (acroRect.top - containerRect.top) + 'px';
+            drop.style.opacity = '1';
+            
+            drops.appendChild(drop);
+            
+            // 위로 이동 후 사라지기
+            setTimeout(() => {
+                drop.style.transition = 'all 1s ease';
+                drop.style.top = '20px';
+                drop.style.opacity = '0';
+            }, 100);
+            
+            setTimeout(() => {
+                drop.remove();
+            }, 1500);
+        }
+        
+        function animatePressure(targetPressure) {
+            const pressureBar = document.getElementById('pressureBar');
+            const currentPressure = pressure;
+            const step = (targetPressure - currentPressure) / 20;
+            let current = currentPressure;
+            
+            const interval = setInterval(() => {
+                if (!simulationRunning) {
+                    clearInterval(interval);
+                    return;
+                }
+                
+                current += step;
+                if ((step > 0 && current >= targetPressure) || 
+                    (step < 0 && current <= targetPressure)) {
+                    current = targetPressure;
+                    clearInterval(interval);
+                }
+                
+                pressure = current;
+                const percentage = (current / 500) * 100;
+                pressureBar.style.width = percentage + '%';
+                pressureBar.textContent = Math.round(current) + ' mm Hg';
+                
+                // 색상 변경
+                if (percentage > 80) {
+                    pressureBar.style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)';
+                } else if (percentage > 50) {
+                    pressureBar.style.background = 'linear-gradient(90deg, #f39c12, #e67e22)';
+                } else {
+                    pressureBar.style.background = 'linear-gradient(90deg, #4CAF50, #8BC34A)';
+                }
+            }, 50);
+        }
+        
+        function updateStats(na, cl, osm) {
+            document.getElementById('naConc').textContent = na + ' mM';
+            document.getElementById('clConc').textContent = cl + ' mM';
+            document.getElementById('osmolality').textContent = osm + ' mOsm';
+        }
+        
+        function resetSimulation() {
+            simulationRunning = false;
+            currentStageIndex = 0;
+            sweatVolume = 0;
+            pressure = 0;
+            
+            // 파티클 제거
+            document.getElementById('particles').innerHTML = '';
+            document.getElementById('sweatDrops').innerHTML = '';
+            
+            // 상태 초기화
+            document.getElementById('currentStage').textContent = '대기 중...';
+            document.getElementById('stageDescription').textContent = '시뮬레이션을 시작하면 에크린 땀샘의 이온 채널을 통한 작동 과정을 관찰할 수 있습니다.';
+            document.getElementById('pressureBar').style.width = '0%';
+            document.getElementById('pressureBar').textContent = '0';
+            document.getElementById('sweatVolume').textContent = '0 μL';
+            
+            updateStats(145, 110, 300);
+            
+            // 클래스 제거
+            document.getElementById('nerve').classList.remove('glowing');
+            document.getElementById('coil').classList.remove('active-stage');
+            document.getElementById('duct').classList.remove('glowing');
+            document.getElementById('acrosyringium').classList.remove('glowing');
+            
+            // 모든 채널 숨기기
+            if (!showChannels) {
+                const channels = document.querySelectorAll('.nkcc1-channel, .ano1-channel, .na-k-atpase, .k-channel, .aqp5-left, .aqp5-right, .m3-receptor, .enac-channel, .cftr-channel');
+                channels.forEach(channel => {
+                    channel.style.opacity = '0';
+                });
+            }
+        }
+        
+        // 초기화
+        resetSimulation();
+    </script>
+</body>
+</html>
