@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>피부 촉각 수용체 구조와 기능 비교</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .receptors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .receptor-card {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .receptor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        .receptor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+        
+        .pacini-card::before { background: linear-gradient(90deg, #3498db, #2980b9); }
+        .meissner-card::before { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+        .ruffini-card::before { background: linear-gradient(90deg, #f39c12, #e67e22); }
+        .merkel-card::before { background: linear-gradient(90deg, #27ae60, #229954); }
+        
+        .receptor-title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+        
+        .receptor-svg {
+            width: 100%;
+            height: 250px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+        
+        .receptor-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            padding: 5px;
+            background: white;
+            border-radius: 5px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #555;
+            width: 100px;
+            font-size: 0.9em;
+        }
+        
+        .info-value {
+            color: #777;
+            flex: 1;
+            font-size: 0.9em;
+        }
+        
+        .adaptation-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        
+        .rapid-adaptation {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+        }
+        
+        .slow-adaptation {
+            background: linear-gradient(135deg, #5f27cd, #00d2d3);
+        }
+        
+        .adaptation-text {
+            color: white;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .signal-pattern {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .signal-bar {
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            position: relative;
+            flex: 1;
+        }
+        
+        .signal-spike {
+            position: absolute;
+            width: 3px;
+            height: 100%;
+            background: #3498db;
+        }
+        
+        .continuous-signal {
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                #27ae60,
+                #27ae60 5px,
+                transparent 5px,
+                transparent 10px
+            );
+        }
+        
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        
+        @keyframes vibrate {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        .vibrate-animation {
+            animation: vibrate 0.1s infinite;
+        }
+        
+        .interactive-demo {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+        }
+        
+        .demo-button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .stimulus-indicator {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 5px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        
+        .vibration { background: #3498db; color: white; }
+        .pressure { background: #27ae60; color: white; }
+        .stretch { background: #f39c12; color: white; }
+        .touch { background: #e74c3c; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 피부 촉각 수용체 구조와 기능 비교</h1>
+        
+        <div class="receptors-grid">
+            <!-- Pacini Corpuscle -->
+            <div class="receptor-card pacini-card">
+                <h2 class="receptor-title">파치니 소체 (Pacini)</h2>
+                <svg class="receptor-svg" viewBox="0 0 300 250">
+                    <!-- 배경 피부층 -->
+                    <rect x="0" y="0" width="300" height="100" fill="#ffe4c4" opacity="0.5"/>
+                    <rect x="0" y="100" width="300" height="150" fill="#ffd4a3" opacity="0.5"/>
+                    <text x="10" y="20" font-size="12" fill="#8b4513">표피</text>
+                    <text x="10" y="120" font-size="12" fill="#a0522d">진피</text>
+                    
+                    <!-- Pacini 소체 - 양파 구조 -->
+                    <g transform="translate(150, 170)">
+                        <!-- 외부 층들 (라멜라) -->
+                        <ellipse cx="0" cy="0" rx="60" ry="40" fill="none" stroke="#4a90e2" stroke-width="1.5" opacity="0.3"/>
+                        <ellipse cx="0" cy="0" rx="52" ry="35" fill="none" stroke="#4a90e2" stroke-width="1.5" opacity="0.4"/>
+                        <ellipse cx="0" cy="0" rx="44" ry="30" fill="none" stroke="#4a90e2" stroke-width="1.5" opacity="0.5"/>
+                        <ellipse cx="0" cy="0" rx="36" ry="25" fill="none" stroke="#4a90e2" stroke-width="1.5" opacity="0.6"/>
+                        <ellipse cx="0" cy="0" rx="28" ry="20" fill="none" stroke="#4a90e2" stroke-width="1.5" opacity="0.7"/>
+                        <ellipse cx="0" cy="0" rx="20" ry="15" fill="none" stroke="#4a90e2" stroke-width="1.5" opacity="0.8"/>
+                        <ellipse cx="0" cy="0" rx="12" ry="10" fill="none" stroke="#4a90e2" stroke-width="2" opacity="0.9"/>
+                        
+                        <!-- 중심 신경 종말 -->
+                        <ellipse cx="0" cy="0" rx="5" ry="4" fill="#ff6b6b"/>
+                        
+                        <!-- 신경 섬유 -->
+                        <line x1="0" y1="40" x2="0" y2="4" stroke="#ff6b6b" stroke-width="2"/>
+                        
+                        <!-- 라벨 -->
+                        <text x="65" y="0" font-size="11" fill="#333">라멜라층</text>
+                        <text x="-35" y="-50" font-size="12" fill="#2c3e50" font-weight="bold">~1mm</text>
+                    </g>
+                    
+                    <!-- 신호 패턴 -->
+                    <g transform="translate(20, 220)">
+                        <text x="0" y="0" font-size="10" fill="#666">신호: ON/OFF</text>
+                        <line x1="30" y1="5" x2="80" y2="5" stroke="#ddd" stroke-width="2"/>
+                        <line x1="35" y1="0" x2="35" y2="10" stroke="#3498db" stroke-width="2"/>
+                        <line x1="75" y1="0" x2="75" y2="10" stroke="#3498db" stroke-width="2"/>
+                    </g>
+                </svg>
+                
+                <div class="adaptation-indicator rapid-adaptation">
+                    <span class="adaptation-text">⚡ 빠른 적응 (RA)</span>
+                </div>
+                
+                <div class="receptor-info">
+                    <div class="info-item">
+                        <span class="info-label">📍 위치:</span>
+                        <span class="info-value">진피 깊은층, 피하조직</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">📐 크기:</span>
+                        <span class="info-value">~1mm (최대)</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">📊 주파수:</span>
+                        <span class="info-value">40-500 Hz</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">🎯 기능:</span>
+                        <span class="info-value">진동, 압력 변화</span>
+                    </div>
+                </div>
+                
+                <div class="stimulus-indicator vibration">진동 감지</div>
+            </div>
+            
+            <!-- Meissner Corpuscle -->
+            <div class="receptor-card meissner-card">
+                <h2 class="receptor-title">마이스너 소체 (Meissner)</h2>
+                <svg class="receptor-svg" viewBox="0 0 300 250">
+                    <!-- 배경 피부층 -->
+                    <rect x="0" y="0" width="300" height="100" fill="#ffe4c4" opacity="0.5"/>
+                    <rect x="0" y="100" width="300" height="150" fill="#ffd4a3" opacity="0.5"/>
+                    <text x="10" y="20" font-size="12" fill="#8b4513">표피</text>
+                    <text x="10" y="120" font-size="12" fill="#a0522d">유두진피</text>
+                    
+                    <!-- 진피 유두 -->
+                    <path d="M 100,100 Q 150,80 200,100" fill="none" stroke="#d4a373" stroke-width="2"/>
+                    
+                    <!-- Meissner 소체 -->
+                    <g transform="translate(150, 85)">
+                        <!-- 타원형 캡슐 -->
+                        <ellipse cx="0" cy="0" rx="25" ry="35" fill="#ffcccc" stroke="#e74c3c" stroke-width="2" opacity="0.7"/>
+                        
+                        <!-- 내부 나선형 구조 -->
+                        <path d="M -15,-25 Q 0,-20 15,-15 Q 0,-10 -15,-5 Q 0,0 15,5 Q 0,10 -15,15 Q 0,20 15,25" 
+                              fill="none" stroke="#c0392b" stroke-width="1.5" opacity="0.8"/>
+                        
+                        <!-- 중심 신경 -->
+                        <line x1="0" y1="-35" x2="0" y2="35" stroke="#ff6b6b" stroke-width="2"/>
+                        
+                        <!-- 신경 가지 -->
+                        <circle cx="-8" cy="-15" r="3" fill="#ff6b6b" opacity="0.7"/>
+                        <circle cx="8" cy="0" r="3" fill="#ff6b6b" opacity="0.7"/>
+                        <circle cx="-8" cy="15" r="3" fill="#ff6b6b" opacity="0.7"/>
+                        
+                        <!-- 라벨 -->
+                        <text x="30" y="0" font-size="11" fill="#333">타원 캡슐</text>
+                        <text x="-40" y="-45" font-size="12" fill="#2c3e50" font-weight="bold">100-150μm</text>
+                    </g>
+                    
+                    <!-- 신경 연결 -->
+                    <line x1="150" y1="120" x2="150" y2="200" stroke="#ff6b6b" stroke-width="2"/>
+                    
+                    <!-- 신호 패턴 -->
+                    <g transform="translate(20, 220)">
+                        <text x="0" y="0" font-size="10" fill="#666">신호: 플러터</text>
+                        <line x1="30" y1="5" x2="80" y2="5" stroke="#ddd" stroke-width="2"/>
+                        <line x1="35" y1="0" x2="35" y2="10" stroke="#e74c3c" stroke-width="1"/>
+                        <line x1="40" y1="0" x2="40" y2="10" stroke="#e74c3c" stroke-width="1"/>
+                        <line x1="45" y1="0" x2="45" y2="10" stroke="#e74c3c" stroke-width="1"/>
+                        <line x1="70" y1="0" x2="70" y2="10" stroke="#e74c3c" stroke-width="1"/>
+                        <line x1="75" y1="0" x2="75" y2="10" stroke="#e74c3c" stroke-width="1"/>
+                    </g>
+                </svg>
+                
+                <div class="adaptation-indicator rapid-adaptation">
+                    <span class="adaptation-text">⚡ 빠른 적응 (RA)</span>
+                </div>
+                
+                <div class="receptor-info">
+                    <div class="info-item">
+                        <span class="info-label">📍 위치:</span>
+                        <span class="info-value">유두 진피층</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">📐 크기:</span>
+                        <span class="info-value">100-150 μm</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">📊 주파수:</span>
+                        <span class="info-value">2-40 Hz</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">🎯 기능:</span>
+                        <span class="info-value">가벼운 접촉, 저주파</span>
+                    </div>
+                </div>
+                
+                <div class="stimulus-indicator touch">가벼운 터치</div>
+            </div>
+            
+            <!-- Ruffini Ending -->
+            <div class="receptor-card ruffini-card">
+                <h2 class="receptor-title">루피니 종말 (Ruffini)</h2>
+                <svg class="receptor-svg" viewBox="0 0 300 250">
+                    <!-- 배경 피부층 -->
+                    <rect x="0" y="0" width="300" height="100" fill="#ffe4c4" opacity="0.5"/>
+                    <rect x="0" y="100" width="300" height="150" fill="#ffd4a3" opacity="0.5"/>
+                    <text x="10" y="20" font-size="12" fill="#8b4513">표피</text>
+                    <text x="10" y="120" font-size="12" fill="#a0522d">망상진피</text>
+                    
+                    <!-- Ruffini 종말 -->
+                    <g transform="translate(150, 170)">
+                        <!-- 방추형 캡슐 -->
+                        <ellipse cx="0" cy="0" rx="70" ry="25" fill="#fff3cd" stroke="#f39c12" stroke-width="2" opacity="0.7"/>
+                        
+                        <!-- 콜라겐 섬유 -->
+                        <line x1="-60" y1="-10" x2="60" y2="10" stroke="#e67e22" stroke-width="1" opacity="0.6"/>
+                        <line x1="-60" y1="0" x2="60" y2="0" stroke="#e67e22" stroke-width="1" opacity="0.6"/>
+                        <line x1="-60" y1="10" x2="60" y2="-10" stroke="#e67e22" stroke-width="1" opacity="0.6"/>
+                        
+                        <!-- 신경 분지 -->
+                        <path d="M -40,0 Q -20,-15 0,-10 Q 20,-5 40,0" fill="none" stroke="#ff6b6b" stroke-width="2"/>
+                        <path d="M -40,0 Q -20,15 0,10 Q 20,5 40,0" fill="none" stroke="#ff6b6b" stroke-width="2"/>
+                        
+                        <!-- 신경 종말 -->
+                        <circle cx="-30" cy="-8" r="2" fill="#ff6b6b"/>
+                        <circle cx="0" cy="-10" r="2" fill="#ff6b6b"/>
+                        <circle cx="30" cy="-5" r="2" fill="#ff6b6b"/>
+                        <circle cx="-30" cy="8" r="2" fill="#ff6b6b"/>
+                        <circle cx="0" cy="10" r="2" fill="#ff6b6b"/>
+                        <circle cx="30" cy="5" r="2" fill="#ff6b6b"/>
+                        
+                        <!-- 라벨 -->
+                        <text x="-35" y="-35" font-size="11" fill="#333">콜라겐 섬유</text>
+                        <text x="-35" y="40" font-size="12" fill="#2c3e50" font-weight="bold">방추형</text>
+                    </g>
+                    
+                    <!-- 신경 -->
+                    <line x1="150" y1="195" x2="150" y2="230" stroke="#ff6b6b" stroke-width="2"/>
+                    
+                    <!-- 신호 패턴 -->
+                    <g transform="translate(20, 220)">
+                        <text x="0" y="0" font-size="10" fill="#666">신호: 지속</text>
+                        <rect x="30" y="2" width="50" height="6" fill="#f39c12" opacity="0.7"/>
+                    </g>
+                </svg>
+                
+                <div class="adaptation-indicator slow-adaptation">
+                    <span class="adaptation-text">🐌 느린 적응 (SA)</span>
+                </div>
+                
+                <div class="receptor-info">
+                    <div class="info-item">
+                        <span class="info-label">📍 위치:</span>
+                        <span class="info-value">진피 깊은층</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">📐 형태:</span>
+                        <span class="info-value">방추형 (길쭉)</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">📊 주파수:</span>
+                        <span class="info-value">100-500 Hz</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">🎯 기능:</span>
+                        <span class="info-value">피부 신장, 관절 위치</span>
+                    </div>
+                </div>
+                
+                <div class="stimulus-indicator stretch">신장 감지</div>
+            </div>
+            
+            <!-- Merkel Disk -->
+            <div class="receptor-card merkel-card">
+                <h2 class="receptor-title">메르켈 디스크 (Merkel)</h2>
+                <svg class="receptor-svg" viewBox="0 0 300 250">
+                    <!-- 배경 피부층 -->
+                    <rect x="0" y="0" width="300" height="100" fill="#ffe4c4" opacity="0.5"/>
+                    <rect x="0" y="100" width="300" height="150" fill="#ffd4a3" opacity="0.5"/>
+                    <text x="10" y="20" font-size="12" fill="#8b4513">표피</text>
+                    <text x="10" y="120" font-size="12" fill="#a0522d">진피</text>
+                    
+                    <!-- 표피-진피 경계 -->
+                    <line x1="0" y1="100" x2="300" y2="100" stroke="#d4a373" stroke-width="2"/>
+                    
+                    <!-- Merkel 디스크 -->
+                    <g transform="translate(150, 100)">
+                        <!-- 메르켈 세포 -->
+                        <ellipse cx="0" cy="-10" rx="20" ry="15" fill="#c8f7c5" stroke="#27ae60" stroke-width="2"/>
+                        
+                        <!-- 핵 -->
+                        <ellipse cx="0" cy="-10" rx="8" ry="6" fill="#229954" opacity="0.7"/>
+                        
+                        <!-- 신경 디스크 -->
+                        <ellipse cx="0" cy="5" rx="25" ry="8" fill="#ffb3ba" stroke="#ff6b6b" stroke-width="2"/>
+                        
+                        <!-- 시냅스 소포 -->
+                        <circle cx="-5" cy="-3" r="2" fill="#27ae60"/>
+                        <circle cx="0" cy="-3" r="2" fill="#27ae60"/>
+                        <circle cx="5" cy="-3" r="2" fill="#27ae60"/>
+                        
+                        <!-- 신경 섬유 -->
+                        <line x1="0" y1="13" x2="0" y2="50" stroke="#ff6b6b" stroke-width="3"/>
+                        
+                        <!-- 라벨 -->
+                        <text x="30" y="-10" font-size="11" fill="#333">메르켈 세포</text>
+                        <text x="30" y="8" font-size="11" fill="#333">신경 디스크</text>
+                        <text x="-50" y="-30" font-size="12" fill="#2c3e50" font-weight="bold">표피-진피 경계</text>
+                    </g>
+                    
+                    <!-- 지문 융선 표시 -->
+                    <path d="M 50,80 Q 75,70 100,80" fill="none" stroke="#d4a373" stroke-width="1"/>
+                    <path d="M 125,80 Q 150,70 175,80" fill="none" stroke="#d4a373" stroke-width="1"/>
+                    <path d="M 200,80 Q 225,70 250,80" fill="none" stroke="#d4a373" stroke-width="1"/>
+                    
+                    <!-- 신호 패턴 -->
+                    <g transform="translate(20, 220)">
+                        <text x="0" y="0" font-size="10" fill="#666">신호: 연속</text>
+                        <rect x="30" y="2" width="50" height="6" fill="#27ae60" opacity="0.8"/>
+                    </g>
+                </svg>
+                
+                <div class="adaptation-indicator slow-adaptation">
+                    <span class="adaptation-text">🐌 느린 적응 (SA)</span>
+                </div>
+                
+                <div class="receptor-info">
+                    <div class="info-item">
+                        <span class="info-label">📍 위치:</span>
+                        <span class="info-value">표피-진피 경계</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">📐 구조:</span>
+                        <span class="info-value">세포 + 신경 디스크</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">📊 주파수:</span>
+                        <span class="info-value">0.2-2.0 Hz</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">🎯 기능:</span>
+                        <span class="info-value">형태, 질감 구별</span>
+                    </div>
+                </div>
+                
+                <div class="stimulus-indicator pressure">지속 압력</div>
+            </div>
+        </div>
+        
+        <!-- 비교 테이블 -->
+        <h2 style="text-align: center; color: #2c3e50; margin: 30px 0;">📊 수용체 특성 비교</h2>
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>특성</th>
+                    <th>Pacini</th>
+                    <th>Meissner</th>
+                    <th>Ruffini</th>
+                    <th>Merkel</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>적응 속도</strong></td>
+                    <td>⚡ 매우 빠름 (RA II)</td>
+                    <td>⚡ 빠름 (RA I)</td>
+                    <td>🐌 느림 (SA II)</td>
+                    <td>🐌 매우 느림 (SA I)</td>
+                </tr>
+                <tr>
+                    <td><strong>수용야</strong></td>
+                    <td>넓음 (Wide)</td>
+                    <td>좁음 (Narrow)</td>
+                    <td>넓음 (Wide)</td>
+                    <td>매우 좁음 (Very narrow)</td>
+                </tr>
+                <tr>
+                    <td><strong>최적 자극</strong></td>
+                    <td>고주파 진동</td>
+                    <td>저주파 진동</td>
+                    <td>피부 신장</td>
+                    <td>정적 압력</td>
+                </tr>
+                <tr>
+                    <td><strong>깊이</strong></td>
+                    <td>깊음 (피하조직)</td>
+                    <td>얕음 (유두진피)</td>
+                    <td>깊음 (망상진피)</td>
+                    <td>얕음 (표피-진피)</td>
+                </tr>
+                <tr>
+                    <td><strong>크기</strong></td>
+                    <td>~1 mm</td>
+                    <td>100-150 μm</td>
+                    <td>200-300 μm</td>
+                    <td>50-70 μm</td>
+                </tr>
+                <tr>
+                    <td><strong>주요 기능</strong></td>
+                    <td>진동 감지</td>
+                    <td>질감 탐색</td>
+                    <td>관절 위치</td>
+                    <td>형태 인식</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <!-- 인터랙티브 데모 -->
+        <div class="interactive-demo">
+            <h2 style="color: #2c3e50; margin-bottom: 20px;">🎮 자극 유형별 수용체 반응</h2>
+            <div>
+                <button class="demo-button" onclick="simulateVibration()">📳 진동 자극</button>
+                <button class="demo-button" onclick="simulateTouch()">👆 가벼운 터치</button>
+                <button class="demo-button" onclick="simulatePressure()">👊 지속 압력</button>
+                <button class="demo-button" onclick="simulateStretch()">↔️ 피부 신장</button>
+            </div>
+            <div id="response-display" style="margin-top: 20px; padding: 15px; background: white; border-radius: 10px; min-height: 60px;">
+                <p style="color: #666;">버튼을 클릭하여 각 자극에 반응하는 수용체를 확인하세요!</p>
+            </div>
+        </div>
+        
+        <!-- 범례 -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #3498db, #2980b9);"></div>
+                <span><strong>Pacini:</strong> 진동 전문가</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #e74c3c, #c0392b);"></div>
+                <span><strong>Meissner:</strong> 터치 감지기</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #f39c12, #e67e22);"></div>
+                <span><strong>Ruffini:</strong> 신장 센서</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #27ae60, #229954);"></div>
+                <span><strong>Merkel:</strong> 형태 판독기</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function simulateVibration() {
+            const display = document.getElementById('response-display');
+            display.innerHTML = `
+                <h3 style="color: #3498db;">📳 진동 자극 (200 Hz)</h3>
+                <p><strong>주요 반응:</strong> <span style="color: #3498db;">Pacini 소체 (강)</span> ✅</p>
+                <p><strong>보조 반응:</strong> <span style="color: #e74c3c;">Meissner 소체 (약)</span></p>
+                <p>Pacini 소체의 층상 구조가 진동을 증폭시켜 고주파를 효과적으로 감지합니다.</p>
+            `;
+            animateCard('pacini-card');
+        }
+        
+        function simulateTouch() {
+            const display = document.getElementById('response-display');
+            display.innerHTML = `
+                <h3 style="color: #e74c3c;">👆 가벼운 터치</h3>
+                <p><strong>주요 반응:</strong> <span style="color: #e74c3c;">Meissner 소체 (강)</span> ✅</p>
+                <p><strong>보조 반응:</strong> <span style="color: #27ae60;">Merkel 디스크 (중)</span></p>
+                <p>Meissner 소체가 표피 근처에서 미세한 접촉과 질감을 감지합니다.</p>
+            `;
+            animateCard('meissner-card');
+        }
+        
+        function simulatePressure() {
+            const display = document.getElementById('response-display');
+            display.innerHTML = `
+                <h3 style="color: #27ae60;">👊 지속 압력</h3>
+                <p><strong>주요 반응:</strong> <span style="color: #27ae60;">Merkel 디스크 (강)</span> ✅</p>
+                <p><strong>보조 반응:</strong> <span style="color: #f39c12;">Ruffini 종말 (중)</span></p>
+                <p>Merkel 디스크가 지속적인 압력과 물체의 형태를 정밀하게 감지합니다.</p>
+            `;
+            animateCard('merkel-card');
+        }
+        
+        function simulateStretch() {
+            const display = document.getElementById('response-display');
+            display.innerHTML = `
+                <h3 style="color: #f39c12;">↔️ 피부 신장</h3>
+                <p><strong>주요 반응:</strong> <span style="color: #f39c12;">Ruffini 종말 (강)</span> ✅</p>
+                <p><strong>보조 반응:</strong> <span style="color: #27ae60;">Merkel 디스크 (약)</span></p>
+                <p>Ruffini 종말이 콜라겐 섬유와 연결되어 피부 신장과 관절 움직임을 감지합니다.</p>
+            `;
+            animateCard('ruffini-card');
+        }
+        
+        function animateCard(className) {
+            const card = document.querySelector('.' + className);
+            card.style.transform = 'scale(1.05)';
+            card.style.boxShadow = '0 20px 50px rgba(0,0,0,0.3)';
+            setTimeout(() => {
+                card.style.transform = '';
+                card.style.boxShadow = '';
+            }, 1000);
+        }
+        
+        // 초기 애니메이션
+        window.addEventListener('load', () => {
+            const cards = document.querySelectorAll('.receptor-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    card.style.transition = 'all 0.5s ease';
+                    
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>
