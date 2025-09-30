@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>두 점 식별 시뮬레이터 (그래프 포함)</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; margin: 24px; }
+  .row { display: grid; grid-template-columns: 320px 1fr; gap: 16px; align-items: start; }
+  .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+  .title { font-weight: 700; font-size: 20px; margin: 0 0 8px; }
+  .label { font-size: 12px; opacity: .7; margin-top: 6px; }
+  .btn { padding: 8px 10px; border-radius: 9999px; border: 1px solid #e5e7eb; background: #f9fafb; cursor: pointer; margin: 3px 4px 3px 0; }
+  .btn.active { background: #111; color: #fff; }
+  .pill { display:inline-block; padding: 6px 10px; border-radius: 9999px; font-size: 12px; margin-top: 6px; }
+  .ok { background: #DCFCE7; }
+  .no { background: #FEF3C7; }
+  #g { width: 100%; height: 260px; border: 1px solid #e5e7eb; border-radius: 12px; }
+</style>
+</head>
+<body>
+  <h1 class="title">두 점 식별 시뮬레이터 (부위별 역치 그래프 포함)</h1>
+  <p class="label">첨부 그림(B)을 기반으로 0–50 mm 스케일의 역치를 시각화합니다. 세로선은 현재 프로브 간격을 나타냅니다.</p>
+
+  <div class="row">
+    <div class="card">
+      <div class="title" style="font-size:16px">설정</div>
+      <div id="regions"></div>
+      <div class="label">프로브 간격 (mm): <span id="gapv">3</span></div>
+      <input id="gap" type="range" min="1" max="50" step="1" value="3" style="width:100%"/>
+      <div id="status" class="pill no">知覺: 한 점</div>
+      <div class="label">선택 부위 역치: <span id="thr">2</span> mm</div>
+    </div>
+    <div class="card">
+      <div class="title" style="font-size:16px">두 점 식별 그래프</div>
+      <svg id="g" viewBox="0 0 600 260"></svg>
+    </div>
+  </div>
+
+<script>
+const thresholds = { "손가락":2, "엄지":3, "손바닥":10, "손목":20, "전완":35, "상완":40, "어깨":45 };
+const order = ["손가락","엄지","손바닥","손목","전완","상완","어깨"];
+let region = "손가락";
+let gap = 3;
+
+const svg = document.getElementById('g');
+const width = 600, height = 260, leftPad = 120, rightMax = 50;
+
+// UI buttons
+const regionsDiv = document.getElementById('regions');
+order.forEach(name => {
+  const b = document.createElement('button');
+  b.textContent = name;
+  b.className = 'btn' + (name===region ? ' active' : '');
+  b.onclick = () => { region = name; updateButtons(); draw(); };
+  regionsDiv.appendChild(b);
+});
+function updateButtons(){
+  [...regionsDiv.children].forEach(btn => {
+    btn.classList.toggle('active', btn.textContent===region);
+  });
+}
+document.getElementById('gap').addEventListener('input', e => {
+  gap = +e.target.value;
+  document.getElementById('gapv').textContent = gap;
+  draw();
+});
+
+function line(x1,y1,x2,y2,cls='stroke:#111;stroke-width:1'){
+  const el = document.createElementNS('http://www.w3.org/2000/svg','line');
+  el.setAttribute('x1',x1); el.setAttribute('y1',y1);
+  el.setAttribute('x2',x2); el.setAttribute('y2',y2);
+  el.setAttribute('style',cls);
+  return el;
+}
+function text(x,y,t,cls='font-size:11px;fill:#333'){
+  const el = document.createElementNS('http://www.w3.org/2000/svg','text');
+  el.setAttribute('x',x); el.setAttribute('y',y);
+  el.setAttribute('style',cls);
+  el.textContent = t; return el;
+}
+function circle(cx,cy,r=4,cls='fill:#111'){
+  const el = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  el.setAttribute('cx',cx); el.setAttribute('cy',cy);
+  el.setAttribute('r',r); el.setAttribute('class',''); el.setAttribute('style',cls);
+  return el;
+}
+function draw(){
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  // border
+  svg.appendChild(line(0,0,600,0,'stroke:#e5e7eb;stroke-width:1'));
+  svg.appendChild(line(600,0,600,260,'stroke:#e5e7eb;stroke-width:1'));
+  svg.appendChild(line(600,260,0,260,'stroke:#e5e7eb;stroke-width:1'));
+  svg.appendChild(line(0,260,0,0,'stroke:#e5e7eb;stroke-width:1'));
+
+  // grid 0..50
+  for(let mm=0; mm<=50; mm+=10){
+    const x = leftPad + (mm/50)*(width-leftPad-20);
+    svg.appendChild(line(x,12,x,height-20,'stroke:#e5e7eb;stroke-width:1'));
+    svg.appendChild(text(x-6,height-5, mm.toString(), 'font-size:10px;fill:#6b7280'));
+  }
+
+  // lines per region
+  order.forEach((name,i)=>{
+    const y = 30 + i*30;
+    const thr = thresholds[name];
+    const x0 = leftPad;
+    const x1 = leftPad + (thr/50)*(width-leftPad-20);
+    svg.appendChild(text(12,y+4,name,'font-size:12px;fill:#111'));
+    svg.appendChild(line(x0,y,x1,y,'stroke:#0f172a;stroke-width:2'));
+    svg.appendChild(circle(x1,y,4,'fill:#0f172a'));
+  });
+
+  // vertical line for current gap
+  const xGap = leftPad + (gap/50)*(width-leftPad-20);
+  const pass = gap >= thresholds[region];
+  svg.appendChild(line(xGap,12,xGap,height-20, pass ? 'stroke:#059669;stroke-width:3' : 'stroke:#d97706;stroke-width:3'));
+  document.getElementById('thr').textContent = thresholds[region];
+  const st = document.getElementById('status');
+  st.textContent = '知覺: ' + (pass ? '두 점' : '한 점');
+  st.className = 'pill ' + (pass ? 'ok' : 'no');
+}
+updateButtons();
+draw();
+</script>
+</body>
+</html>
