@@ -1,0 +1,232 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>촉각 신경전달 시뮬레이터 (4 수용기)</title>
+<style>
+  :root{--border:#e5e7eb;--muted:#f8fafc;--text:#0f172a;--sub:#6b7280;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;margin:20px;color:var(--text);}
+  .grid{display:grid;gap:14px}
+  .cols{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .card{border:1px solid var(--border);border-radius:12px;padding:14px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .title{font-weight:700}
+  .h1{font-size:20px;margin:0 0 4px}
+  .muted{font-size:12px;color:var(--sub)}
+  .btn{border:1px solid var(--border);background:var(--muted);padding:8px 10px;border-radius:9999px;margin:3px 4px 3px 0;cursor:pointer}
+  .btn.on{background:#111;color:#fff}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .label{font-size:12px;color:var(--sub);margin-top:6px}
+  .badge{display:inline-block;padding:6px 10px;border-radius:9999px;background:var(--muted);font-size:12px;margin-top:6px}
+  svg{width:100%;height:120px;border:1px solid var(--border);border-radius:10px}
+</style>
+</head>
+<body>
+  <h1 class="title h1">촉각 신경전달 시뮬레이터 (4 수용기)</h1>
+  <p class="muted">자극(진동/압박) → 수용기(마이이스너/파치니/루피니/머클) → 수용기 전위 → 발화 → 말초 전도(Aβ/Aδ/C) → CNS 도달</p>
+
+  <div class="grid cols">
+    <div class="card">
+      <div class="title">수용기 선택</div>
+      <div id="receptorBtns" class="row"></div>
+      <div id="receptorInfo" class="badge"></div>
+    </div>
+
+    <div class="card">
+      <div class="title">자극 설정</div>
+      <div class="row">
+        <button id="sinBtn" class="btn on">진동(sine)</button>
+        <button id="stepBtn" class="btn">압박(step)</button>
+      </div>
+      <div class="label">주파수 (Hz): <span id="freqV">10</span></div>
+      <input id="freq" type="range" min="1" max="500" step="1" value="10" style="width:100%"/>
+      <div class="label">자극 강도 (상대): <span id="ampV">1.00</span></div>
+      <input id="amp" type="range" min="0" max="2" step="0.01" value="1" style="width:100%"/>
+      <div class="label">시뮬레이션 길이 (ms): <span id="durV">800</span></div>
+      <input id="dur" type="range" min="200" max="2500" step="10" value="800" style="width:100%"/>
+      <div class="label">임계치 θ: <span id="thV">0.50</span></div>
+      <input id="th" type="range" min="0.1" max="1.5" step="0.01" value="0.5" style="width:100%"/>
+      <div class="label">불응기 (ms): <span id="refV">8</span></div>
+      <input id="ref" type="range" min="2" max="20" step="1" value="8" style="width:100%"/>
+    </div>
+
+    <div class="card">
+      <div class="title">축색 전도</div>
+      <div class="row" id="fiberBtns"></div>
+      <div class="label">피부→척수 거리 (cm): <span id="distV">60</span></div>
+      <input id="dist" type="range" min="10" max="120" step="1" value="60" style="width:100%"/>
+      <div class="badge">전도 지연 ≈ <b><span id="delayV">0</span> ms</b></div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:14px">
+    <div class="card">
+      <div class="title">기계적 자극</div>
+      <svg id="stim"></svg>
+    </div>
+    <div class="card">
+      <div class="title">수용기 전위</div>
+      <svg id="vrec"></svg>
+    </div>
+    <div class="card">
+      <div class="title">말단 발화(raster)</div>
+      <svg id="raster1"></svg>
+    </div>
+    <div class="card">
+      <div class="title">CNS 도달 발화(raster)</div>
+      <svg id="raster2"></svg>
+    </div>
+  </div>
+
+<script>
+// ---------- 모델 파라미터 ----------
+const receptorProfiles = {
+  "Meissner": { band:[2,40], adaptTauMs:120, rf:"narrow", label:"Meissner (RA1, 2–40 Hz, narrow)" },
+  "Pacinian": { band:[40,500], adaptTauMs:120, rf:"wide", label:"Pacinian (RA2, 40–500 Hz, wide)" },
+  "Ruffini":  { band:[100,500], adaptTauMs:1500, rf:"wide", label:"Ruffini (SA2, 100–500 Hz, wide)" },
+  "Merkel":   { band:[0.2,2], adaptTauMs:2000, rf:"narrow", label:"Merkel (SA1, 0.2–2 Hz, narrow)" },
+};
+const velocities = { "Aβ":50, "Aδ":15, "C":1.5 };
+
+// ---------- 상태 ----------
+let receptor = "Meissner";
+let stimType = "sin"; // or "step"
+let freq = 10, amp = 1.0, durationMs = 800, theta = 0.5, refracMs = 8;
+let fiber = "Aβ", distanceCm = 60;
+
+// ---------- 유틸 ----------
+function bandpassGain(f, low, high){
+  if (f<=0) return 0;
+  if (f<low) return Math.max(0, f/low);
+  if (f>high) return Math.max(0, high/f);
+  return 1;
+}
+function generateSpikes(time, vrec, theta, refracMs){
+  const spikes=[]; let last=-1e9;
+  for(let i=1;i<time.length;i++){
+    const t=time[i];
+    if (vrec[i-1]<theta && vrec[i]>=theta){
+      if (t-last>=refracMs){ spikes.push(t); last=t; }
+    }
+  }
+  return spikes;
+}
+function drawWave(svgId, time, y, yRange){
+  const svg=document.getElementById(svgId);
+  // clear
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const w=600,h=120,p=20;
+  svg.setAttribute("viewBox",`0 0 ${w} ${h}`);
+  // axis
+  const ax=document.createElementNS("http://www.w3.org/2000/svg","line");
+  ax.setAttribute("x1",p); ax.setAttribute("x2",w-p); ax.setAttribute("y1",h/2); ax.setAttribute("y2",h/2);
+  ax.setAttribute("style","stroke:#e5e7eb");
+  svg.appendChild(ax);
+  // polyline
+  const pts=time.map((t,i)=>{
+    const x=p + (t-time[0])/(time[time.length-1]-time[0])*(w-2*p);
+    const yn=(y[i]-yRange[0])/(yRange[1]-yRange[0]);
+    const yy=h-p - yn*(h-2*p);
+    return `${x},${yy}`;
+  }).join(" ");
+  const pl=document.createElementNS("http://www.w3.org/2000/svg","polyline");
+  pl.setAttribute("points",pts);
+  pl.setAttribute("style","fill:none;stroke:#111;stroke-width:1.5");
+  svg.appendChild(pl);
+}
+function drawRaster(svgId, time, spikes){
+  const svg=document.getElementById(svgId);
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const w=600,h=120,p=20;
+  svg.setAttribute("viewBox",`0 0 ${w} ${h}`);
+  // border
+  const rect=document.createElementNS("http://www.w3.org/2000/svg","rect");
+  rect.setAttribute("x",0);rect.setAttribute("y",0);rect.setAttribute("width",w);rect.setAttribute("height",h);
+  rect.setAttribute("style","fill:none;stroke:#e5e7eb");
+  svg.appendChild(rect);
+  // spikes
+  for(const t of spikes){
+    const x=p + (t-time[0])/(time[time.length-1]-time[0])*(w-2*p);
+    const line=document.createElementNS("http://www.w3.org/2000/svg","line");
+    line.setAttribute("x1",x); line.setAttribute("x2",x); line.setAttribute("y1",10); line.setAttribute("y2",h-10);
+    line.setAttribute("style","stroke:#111;stroke-width:1.5");
+    svg.appendChild(line);
+  }
+}
+
+// ---------- UI 초기화 ----------
+const rDiv=document.getElementById('receptorBtns');
+Object.keys(receptorProfiles).forEach((k)=>{
+  const b=document.createElement('button'); b.textContent=k; b.className='btn'+(k===receptor?' on':''); 
+  b.onclick=()=>{ receptor=k; updateReceptorInfo(); refresh(); };
+  rDiv.appendChild(b);
+});
+function markBtns(divId, val){
+  const nodes=[...document.getElementById(divId).children];
+  nodes.forEach(n=>n.classList.toggle('on', n.textContent===val));
+}
+function updateReceptorInfo(){
+  document.getElementById('receptorInfo').textContent = receptorProfiles[receptor].label + ' · RF=' + (receptorProfiles[receptor].rf==='narrow'?'좁음':'넓음');
+  markBtns('receptorBtns', receptor);
+}
+updateReceptorInfo();
+
+const fiberDiv=document.getElementById('fiberBtns');
+['Aβ','Aδ','C'].forEach(k=>{
+  const b=document.createElement('button'); b.textContent=k; b.className='btn'+(k===fiber?' on':''); 
+  b.onclick=()=>{ fiber=k; markBtns('fiberBtns',fiber); refresh(); };
+  fiberDiv.appendChild(b);
+});
+
+// sliders + toggles
+const bind=(id, cb)=> document.getElementById(id).addEventListener('input', e=>cb(+e.target.value));
+bind('freq', v=>{freq=v; document.getElementById('freqV').textContent=v; refresh();});
+bind('amp', v=>{amp=v; document.getElementById('ampV').textContent=v.toFixed(2); refresh();});
+bind('dur', v=>{durationMs=v; document.getElementById('durV').textContent=v; refresh();});
+bind('th', v=>{theta=v; document.getElementById('thV').textContent=v.toFixed(2); refresh();});
+bind('ref', v=>{refracMs=v; document.getElementById('refV').textContent=v; refresh();});
+bind('dist', v=>{distanceCm=v; document.getElementById('distV').textContent=v; refresh();});
+
+document.getElementById('sinBtn').onclick=()=>{stimType='sin'; document.getElementById('sinBtn').classList.add('on'); document.getElementById('stepBtn').classList.remove('on'); refresh();};
+document.getElementById('stepBtn').onclick=()=>{stimType='step'; document.getElementById('stepBtn').classList.add('on'); document.getElementById('sinBtn').classList.remove('on'); refresh();};
+
+// ---------- 핵심 시뮬레이션 ----------
+function simulate(){
+  const dt=1; // ms
+  const time=Array.from({length:Math.floor(durationMs/dt)+1},(_,i)=>i*dt);
+  const stim=[], vrec=[];
+  const prof=receptorProfiles[receptor];
+  const [low,high]=prof.band, tau=prof.adaptTauMs;
+
+  for(let i=0;i<time.length;i++){
+    const t=time[i];
+    let s=0;
+    if(stimType==='sin'){ s=amp*Math.sin(2*Math.PI*(freq/1000)*t); }
+    else { s = (t>=50)?amp:0; }
+    const g = (stimType==='sin') ? bandpassGain(freq,low,high) : 1;
+    const adapt = (stimType==='sin') ? Math.exp(-t/tau) : Math.exp(-Math.max(0,t-50)/tau);
+    stim.push(s);
+    vrec.push(s*g*adapt);
+  }
+  const spikes = generateSpikes(time, vrec, theta, refracMs);
+  const vel = velocities[fiber];
+  const delayMs = (distanceCm/100)/vel*1000;
+  const cnsSpikes = spikes.map(t=>t+delayMs);
+  return {time, stim, vrec, spikes, cnsSpikes, delayMs};
+}
+
+function refresh(){
+  const {time, stim, vrec, spikes, cnsSpikes, delayMs} = simulate();
+  document.getElementById('delayV').textContent = delayMs.toFixed(1);
+  const maxAmp = Math.max(1e-6, Math.max(...stim.map(Math.abs), amp));
+  drawWave('stim', time, stim, [-maxAmp, maxAmp]);
+  drawWave('vrec', time, vrec, [-amp, amp]);
+  drawRaster('raster1', time, spikes);
+  drawRaster('raster2', time, cnsSpikes);
+}
+
+refresh();
+</script>
+</body>
+</html>
